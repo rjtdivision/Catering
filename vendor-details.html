@@ -25,79 +25,84 @@
     --font-body:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);}
+  html,body{margin:0;padding:0;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);height:100%;overflow:hidden;}
   body{-webkit-tap-highlight-color:transparent;}
 
-  .wrap{padding:14px 14px 28px;max-width:520px;margin:0 auto;}
+  #fitStage{
+    padding:8px 12px 10px;
+    max-width:520px;
+    margin:0 auto;
+    transform-origin:top center;
+  }
 
   /* ---- ID badge preview (signature element) ---- */
   .badge{
     position:relative;
-    border-radius:16px;
-    padding:16px 16px 14px;
+    border-radius:12px;
+    padding:9px 11px 8px;
     background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
     color:#fff;
     overflow:hidden;
-    margin-bottom:18px;
-    box-shadow:0 6px 18px rgba(11,37,69,0.25);
+    margin-bottom:8px;
+    box-shadow:0 4px 12px rgba(11,37,69,0.25);
   }
   .badge::before{
     content:"";
     position:absolute;
     top:-30px;right:-30px;
-    width:120px;height:120px;
+    width:100px;height:100px;
     border-radius:50%;
     background:radial-gradient(circle,rgba(34,211,238,0.30),transparent 70%);
   }
   .badge-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
-  .badge-eyebrow{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--cyan-300);font-weight:600;margin:0 0 3px;}
-  .badge-name{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;min-height:20px;}
-  .badge-meta{font-size:11px;color:#bcd4ea;margin-top:3px;}
+  .badge-eyebrow{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-300);font-weight:600;margin:0 0 2px;}
+  .badge-name{font-family:var(--font-display);font-size:14px;font-weight:600;margin:0;min-height:16px;}
+  .badge-meta{font-size:9.5px;color:#bcd4ea;margin-top:2px;}
   .badge-id{
     text-align:right;
     font-family:var(--font-display);
-    font-size:15px;
+    font-size:13px;
     font-weight:700;
-    letter-spacing:1px;
+    letter-spacing:0.8px;
     color:var(--cyan-300);
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(103,232,249,0.35);
-    border-radius:8px;
-    padding:5px 9px;
-    min-width:76px;
+    border-radius:7px;
+    padding:4px 7px;
+    min-width:66px;
   }
-  .badge-id small{display:block;font-family:var(--font-body);font-size:8px;font-weight:500;letter-spacing:0.6px;color:#8fb0cf;text-transform:uppercase;margin-bottom:1px;}
+  .badge-id small{display:block;font-family:var(--font-body);font-size:7px;font-weight:500;letter-spacing:0.5px;color:#8fb0cf;text-transform:uppercase;margin-bottom:1px;}
 
   /* ---- Section ---- */
   .section-title{
     font-family:var(--font-display);
-    font-size:12.5px;
+    font-size:10.5px;
     font-weight:600;
     color:var(--navy-800);
     text-transform:uppercase;
-    letter-spacing:0.6px;
-    margin:20px 0 10px;
+    letter-spacing:0.5px;
+    margin:9px 0 5px;
     display:flex;
     align-items:center;
-    gap:7px;
+    gap:6px;
   }
   .section-title::before{
     content:"";
-    width:4px;height:14px;
+    width:3px;height:11px;
     border-radius:2px;
     background:var(--cyan-500);
     display:inline-block;
   }
 
-  .field{margin-bottom:14px;}
+  .field{margin-bottom:6px;}
   .field label{
     display:block;
-    font-size:12px;
+    font-size:9.5px;
     font-weight:600;
     color:var(--navy-800);
-    margin-bottom:5px;
+    margin-bottom:2px;
   }
-  .field .hint{font-size:10.5px;color:var(--muted);font-weight:400;margin-left:4px;}
+  .field .hint{font-size:8.5px;color:var(--muted);font-weight:400;margin-left:3px;}
 
   input[type="text"],
   input[type="tel"],
@@ -105,13 +110,13 @@
   select,
   input[list]{
     width:100%;
-    padding:11px 12px;
-    font-size:14px;
+    padding:6px 8px;
+    font-size:12px;
     font-family:var(--font-body);
     color:var(--ink);
     background:#fff;
     border:1.5px solid var(--line);
-    border-radius:10px;
+    border-radius:8px;
     outline:none;
     transition:border-color .15s ease, box-shadow .15s ease;
     -webkit-appearance:none;
@@ -127,11 +132,11 @@
   select{
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a4a86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat:no-repeat;
-    background-position:right 12px center;
-    padding-right:32px;
+    background-position:right 8px center;
+    padding-right:26px;
   }
 
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
 
   /* ---- radio pills for designation ---- */
   .pill-group{display:flex;flex-wrap:wrap;gap:8px;}
@@ -162,29 +167,30 @@
   /* ---- upload rows ---- */
   .upload-card{
     border:1.5px solid var(--line);
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
+    border-radius:9px;
+    padding:7px 8px;
+    margin-bottom:6px;
     background:#fff;
   }
   .upload-card .doc-title{
-    font-size:12.5px;
+    font-size:9.5px;
     font-weight:600;
     color:var(--navy-800);
-    margin-bottom:9px;
+    margin-bottom:5px;
     display:flex;
     align-items:center;
-    gap:6px;
+    gap:5px;
+    line-height:1.3;
   }
-  .upload-card .doc-title svg{width:15px;height:15px;stroke:var(--cyan-500);}
-  .upload-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:9px;}
+  .upload-card .doc-title svg{width:12px;height:12px;stroke:var(--cyan-500);flex:0 0 auto;}
+  .upload-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:6px;}
   .file-btn{
     position:relative;
     border:1.5px dashed var(--line);
-    border-radius:9px;
-    padding:9px 8px;
+    border-radius:7px;
+    padding:5px 6px;
     text-align:center;
-    font-size:11px;
+    font-size:9px;
     color:var(--muted);
     background:var(--cyan-50);
     overflow:hidden;
@@ -193,32 +199,33 @@
     position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
   }
   .file-btn.has-file{border-style:solid;border-color:var(--cyan-500);color:var(--navy-800);background:var(--cyan-100);}
-  .upload-grid label.mini{font-size:10px;color:var(--muted);font-weight:500;margin-bottom:4px;display:block;}
+  .upload-grid label.mini{font-size:8px;color:var(--muted);font-weight:500;margin-bottom:2px;display:block;}
+  input[type="date"]{padding:5px 6px;font-size:10.5px;}
 
   /* ---- submit ---- */
   .submit-btn{
     width:100%;
-    padding:14px;
-    margin-top:10px;
+    padding:9px;
+    margin-top:6px;
     border:none;
-    border-radius:12px;
+    border-radius:10px;
     font-family:var(--font-display);
-    font-size:14.5px;
+    font-size:12px;
     font-weight:600;
-    letter-spacing:0.3px;
+    letter-spacing:0.2px;
     color:var(--navy-950);
     background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
-    box-shadow:0 5px 14px rgba(6,182,212,0.35);
+    box-shadow:0 4px 10px rgba(6,182,212,0.35);
     cursor:pointer;
   }
   .submit-btn:active{transform:translateY(1px);}
 
   .note{
-    font-size:10.5px;
+    font-size:8px;
     color:var(--muted);
     text-align:center;
-    margin-top:10px;
-    line-height:1.5;
+    margin-top:5px;
+    line-height:1.4;
   }
 
   /* ---- toast ---- */
@@ -410,7 +417,7 @@
 </head>
 <body>
 
-<div class="wrap">
+<div id="fitStage">
 
   <!-- Signature element: live ID badge preview -->
   <div class="badge">
@@ -786,6 +793,33 @@
   });
 
   updateBadge();
+
+  // ================= Auto-fit to single mobile screen =================
+  // Scales the whole form down (if needed) so it fits the visible area
+  // with no scrolling, regardless of device height.
+  const fitStage = document.getElementById('fitStage');
+
+  function fitToScreen(){
+    fitStage.style.transform = 'none';
+    const available = window.innerHeight;
+    const natural = fitStage.scrollHeight;
+    let scale = natural > 0 ? available / natural : 1;
+    if (scale > 1) scale = 1;
+    if (scale < 0.55) scale = 0.55; // readability floor; falls back to scroll beyond this
+    fitStage.style.transform = 'scale(' + scale + ')';
+    document.body.style.overflowY = (scale <= 0.55 && natural * 0.55 > available) ? 'auto' : 'hidden';
+  }
+
+  window.addEventListener('load', fitToScreen);
+  window.addEventListener('resize', fitToScreen);
+  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 200));
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitToScreen);
+  }
+  // Re-check shortly after load in case late font/layout shifts changed height
+  setTimeout(fitToScreen, 150);
+  setTimeout(fitToScreen, 500);
+  fitToScreen();
 </script>
 
 </body>

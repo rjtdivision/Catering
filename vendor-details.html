@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vendor Details</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#061a33;
+    --navy-900:#0b2545;
+    --navy-800:#123a6b;
+    --navy-700:#1a4a86;
+    --cyan-500:#06b6d4;
+    --cyan-400:#22d3ee;
+    --cyan-300:#67e8f9;
+    --cyan-100:#e3fbff;
+    --cyan-50:#f0fdff;
+    --line:#d7e8f5;
+    --ink:#0b2545;
+    --muted:#5a7291;
+    --danger:#e0455a;
+    --font-display:'Poppins',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);}
+  body{-webkit-tap-highlight-color:transparent;}
+
+  .wrap{padding:14px 14px 28px;max-width:520px;margin:0 auto;}
+
+  /* ---- ID badge preview (signature element) ---- */
+  .badge{
+    position:relative;
+    border-radius:16px;
+    padding:16px 16px 14px;
+    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
+    color:#fff;
+    overflow:hidden;
+    margin-bottom:18px;
+    box-shadow:0 6px 18px rgba(11,37,69,0.25);
+  }
+  .badge::before{
+    content:"";
+    position:absolute;
+    top:-30px;right:-30px;
+    width:120px;height:120px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(34,211,238,0.30),transparent 70%);
+  }
+  .badge-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
+  .badge-eyebrow{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--cyan-300);font-weight:600;margin:0 0 3px;}
+  .badge-name{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;min-height:20px;}
+  .badge-meta{font-size:11px;color:#bcd4ea;margin-top:3px;}
+  .badge-id{
+    text-align:right;
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:var(--cyan-300);
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(103,232,249,0.35);
+    border-radius:8px;
+    padding:5px 9px;
+    min-width:76px;
+  }
+  .badge-id small{display:block;font-family:var(--font-body);font-size:8px;font-weight:500;letter-spacing:0.6px;color:#8fb0cf;text-transform:uppercase;margin-bottom:1px;}
+
+  /* ---- Section ---- */
+  .section-title{
+    font-family:var(--font-display);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--navy-800);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin:20px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .section-title::before{
+    content:"";
+    width:4px;height:14px;
+    border-radius:2px;
+    background:var(--cyan-500);
+    display:inline-block;
+  }
+
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--navy-800);
+    margin-bottom:5px;
+  }
+  .field .hint{font-size:10.5px;color:var(--muted);font-weight:400;margin-left:4px;}
+
+  input[type="text"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  input[list]{
+    width:100%;
+    padding:11px 12px;
+    font-size:14px;
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input:focus, select:focus{
+    border-color:var(--cyan-500);
+    box-shadow:0 0 0 3px rgba(6,182,212,0.15);
+  }
+  input:disabled{background:#eef4f9;color:var(--muted);}
+  input::placeholder{color:#a9bdd2;}
+
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a4a86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    padding-right:32px;
+  }
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  /* ---- radio pills for designation ---- */
+  .pill-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .pill{
+    flex:1 1 calc(50% - 8px);
+    position:relative;
+  }
+  .pill input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0;width:100%;height:100%;}
+  .pill span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--navy-800);
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    text-align:center;
+  }
+  .pill input:checked + span{
+    background:linear-gradient(135deg,var(--navy-900),var(--navy-700));
+    border-color:var(--navy-700);
+    color:#fff;
+  }
+
+  /* ---- upload rows ---- */
+  .upload-card{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+    background:#fff;
+  }
+  .upload-card .doc-title{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--navy-800);
+    margin-bottom:9px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .upload-card .doc-title svg{width:15px;height:15px;stroke:var(--cyan-500);}
+  .upload-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:9px;}
+  .file-btn{
+    position:relative;
+    border:1.5px dashed var(--line);
+    border-radius:9px;
+    padding:9px 8px;
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    background:var(--cyan-50);
+    overflow:hidden;
+  }
+  .file-btn input[type="file"]{
+    position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  }
+  .file-btn.has-file{border-style:solid;border-color:var(--cyan-500);color:var(--navy-800);background:var(--cyan-100);}
+  .upload-grid label.mini{font-size:10px;color:var(--muted);font-weight:500;margin-bottom:4px;display:block;}
+
+  /* ---- submit ---- */
+  .submit-btn{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:12px;
+    font-family:var(--font-display);
+    font-size:14.5px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--navy-950);
+    background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
+    box-shadow:0 5px 14px rgba(6,182,212,0.35);
+    cursor:pointer;
+  }
+  .submit-btn:active{transform:translateY(1px);}
+
+  .note{
+    font-size:10.5px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:10px;
+    line-height:1.5;
+  }
+
+  /* ---- toast ---- */
+  #toast{
+    position:fixed;
+    left:50%;bottom:18px;
+    transform:translate(-50%,20px);
+    background:var(--navy-950);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:10px;
+    font-size:12.5px;
+    font-weight:500;
+    box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    opacity:0;
+    transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+    z-index:50;
+    max-width:88%;
+    text-align:center;
+    border:1px solid rgba(103,232,249,0.3);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+  #toast.error{border-color:rgba(224,69,90,0.5);}
+
+  .req{color:var(--danger);}
+
+  .hi{
+    color:var(--muted);
+    font-weight:500;
+    text-transform:none;
+    font-size:11px;
+  }
+
+  /* ================= Review / Confirm Modal ================= */
+  #modalOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(6,20,40,0.55);
+    backdrop-filter:blur(2px);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:100;
+  }
+  #modalOverlay.show{display:flex;}
+  .modal-card{
+    width:100%;
+    max-width:520px;
+    max-height:88vh;
+    background:#fff;
+    border-radius:20px 20px 0 0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    animation:slideUp .22s ease;
+    box-shadow:0 -8px 30px rgba(0,0,0,0.3);
+  }
+  @keyframes slideUp{
+    from{transform:translateY(24px);opacity:0;}
+    to{transform:translateY(0);opacity:1;}
+  }
+  .modal-head{
+    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
+    color:#fff;
+    padding:16px 18px;
+    position:relative;
+    flex:0 0 auto;
+    border-bottom:2px solid var(--cyan-400);
+  }
+  .modal-head h3{
+    font-family:var(--font-display);
+    font-size:15px;
+    margin:0 0 2px;
+    font-weight:600;
+  }
+  .modal-head p{margin:0;font-size:11px;color:var(--cyan-300);}
+  .modal-head .hi-sub{color:#bcd4ea;font-size:10.5px;}
+
+  .modal-body{
+    padding:14px 18px 4px;
+    overflow-y:auto;
+    flex:1 1 auto;
+  }
+  .rv-group-title{
+    font-family:var(--font-display);
+    font-size:11px;
+    font-weight:600;
+    color:var(--cyan-500);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin:14px 0 8px;
+  }
+  .rv-group-title:first-child{margin-top:2px;}
+  .rv-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    padding:9px 0;
+    border-bottom:1px solid var(--cyan-50);
+  }
+  .rv-label{
+    font-size:11px;
+    font-weight:600;
+    color:var(--navy-800);
+    min-width:40%;
+    line-height:1.4;
+  }
+  .rv-label .hi{display:block;font-size:10px;color:var(--muted);font-weight:400;}
+  .rv-value{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    text-align:right;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .rv-value.missing{
+    color:#b3271a;
+    background:#fdeceb;
+    border:1px solid #f3b9b3;
+    padding:3px 8px;
+    border-radius:6px;
+    font-size:11px;
+    font-weight:600;
+  }
+  .rv-value .doc-date{
+    display:block;
+    font-size:10.5px;
+    font-weight:500;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .rv-value .doc-date.missing{
+    color:#b3271a;
+    background:#fdeceb;
+    border:1px solid #f3b9b3;
+    padding:2px 7px;
+    border-radius:6px;
+    display:inline-block;
+    margin-top:3px;
+  }
+  .rv-warning{
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    background:#fff6e0;
+    border:1px solid #f2d38a;
+    color:#8a5a00;
+    border-radius:10px;
+    padding:10px 11px;
+    font-size:11px;
+    line-height:1.5;
+    margin:14px 0 4px;
+  }
+  .rv-warning svg{width:16px;height:16px;flex:0 0 auto;stroke:#c07d00;margin-top:1px;}
+
+  .modal-foot{
+    flex:0 0 auto;
+    padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+    display:flex;
+    gap:10px;
+    border-top:1px solid var(--line);
+    background:#fff;
+  }
+  .modal-foot button{
+    flex:1;
+    padding:13px 8px;
+    border-radius:11px;
+    font-family:var(--font-display);
+    font-size:13px;
+    font-weight:600;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-edit{
+    background:#fff;
+    color:var(--navy-800);
+    border:1.5px solid var(--line) !important;
+  }
+  .btn-confirm{
+    background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
+    color:var(--navy-950);
+    box-shadow:0 5px 14px rgba(6,182,212,0.35);
+  }
+  .btn-confirm:active, .btn-edit:active{transform:translateY(1px);}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Signature element: live ID badge preview -->
+  <div class="badge">
+    <div class="badge-row">
+      <div>
+        <p class="badge-eyebrow">Vendor Identity Card</p>
+        <p class="badge-name" id="badgeName">New Entry</p>
+        <p class="badge-meta" id="badgeMeta">Station not selected &middot; Designation not selected</p>
+      </div>
+      <div class="badge-id">
+        <small>ID No.</small>
+        <span id="badgeId">--</span>
+      </div>
+    </div>
+  </div>
+
+  <form id="vendorForm" novalidate>
+
+    <div class="section-title">PERSONAL DETAILS <span class="hi">/ व्यक्तिगत विवरण</span></div>
+
+    <div class="field">
+      <label for="name">NAME <span class="hi">/ नाम</span> <span class="req">*</span></label>
+      <input type="text" id="name" name="name" placeholder="Enter full name" required autocomplete="off">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="station">STATION <span class="hi">/ स्टेशन</span> <span class="req">*</span></label>
+        <select id="station" name="station" required>
+          <option value="" disabled selected>Select station</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="designation">DESIGNATION <span class="hi">/ पदनाम</span> <span class="req">*</span></label>
+        <select id="designation" name="designation" required>
+          <option value="" disabled selected>Select</option>
+          <option value="Vendor">Vendor</option>
+          <option value="Manager">Manager</option>
+          <option value="Cook">Cook</option>
+          <option value="Helper">Helper</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="unitName">NAME OF UNIT <span class="hi">/ यूनिट का नाम</span> <span class="req">*</span> <span class="hint">(select station first)</span></label>
+      <input list="unitOptions" id="unitName" name="unitName" placeholder="Select station to search units" autocomplete="off" disabled>
+      <datalist id="unitOptions"></datalist>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="mobile">MOBILE NO. <span class="hi">/ मोबाइल नंबर</span> <span class="req">*</span></label>
+        <input type="tel" id="mobile" name="mobile" placeholder="10-digit number" maxlength="10" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="bloodGroup">BLOOD GROUP <span class="hi">/ रक्त समूह</span> <span class="req">*</span></label>
+        <select id="bloodGroup" name="bloodGroup" required>
+          <option value="" disabled selected>Select</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>O+</option><option>O-</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="aadhar">AADHAR CARD NO. <span class="hi">/ आधार कार्ड नंबर</span> <span class="req">*</span></label>
+        <input type="text" id="aadhar" name="aadhar" placeholder="12-digit number" maxlength="12" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="idNo">ID NO. <span class="hi">/ आईडी नंबर</span> <span class="hint">(auto)</span></label>
+        <input type="text" id="idNo" name="idNo" placeholder="Auto-generated" disabled>
+      </div>
+    </div>
+
+    <div class="section-title">DOCUMENT UPLOAD <span class="hi">/ दस्तावेज़ अपलोड</span></div>
+
+    <div class="upload-card">
+      <div class="doc-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        POLICE VERIFICATION CERTIFICATE <span class="hi">/ पुलिस सत्यापन प्रमाणपत्र</span>
+      </div>
+      <div class="upload-grid">
+        <div>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <div class="file-btn" id="fileBtn1">
+            <input type="file" id="fPolice" name="fPolice" accept=".pdf,.jpg,.jpeg,.png">
+            <span id="fLabel1">Tap to choose file</span>
+          </div>
+        </div>
+        <div>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <input type="date" id="dPolice" name="dPolice">
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-card">
+      <div class="doc-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        MEDICAL CERTIFICATE <span class="hi">/ मेडिकल प्रमाणपत्र</span>
+      </div>
+      <div class="upload-grid">
+        <div>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <div class="file-btn" id="fileBtn2">
+            <input type="file" id="fMedical" name="fMedical" accept=".pdf,.jpg,.jpeg,.png">
+            <span id="fLabel2">Tap to choose file</span>
+          </div>
+        </div>
+        <div>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <input type="date" id="dMedical" name="dMedical">
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-card">
+      <div class="doc-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        FSSAI LICENSE <span class="hi">/ एफएसएसएआई लाइसेंस</span>
+      </div>
+      <div class="upload-grid">
+        <div>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <div class="file-btn" id="fileBtn3">
+            <input type="file" id="fFssai" name="fFssai" accept=".pdf,.jpg,.jpeg,.png">
+            <span id="fLabel3">Tap to choose file</span>
+          </div>
+        </div>
+        <div>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <input type="date" id="dFssai" name="dFssai">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn">SUBMIT VENDOR DETAILS <span class="hi" style="color:rgba(11,37,69,0.65)">/ विवरण सबमिट करें</span></button>
+    <p class="note">Data will be saved to the Google Sheet database.<br>(Backend connection to be integrated next.)</p>
+
+  </form>
+</div>
+
+<!-- ================= Review / Confirm Modal ================= -->
+<div id="modalOverlay">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>CONFIRM VENDOR DETAILS</h3>
+      <p class="hi-sub">विवरण की पुष्टि करें — कृपया सबमिट करने से पहले जांच लें</p>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn-edit" id="btnEdit">GO BACK &amp; EDIT</button>
+      <button type="button" class="btn-confirm" id="btnConfirm">CONFIRM &amp; SUBMIT</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const STATIONS = ["OKHA","MTHP","DWK","BHTA","KMBL","JAM","HAPA","RJT","BKNG","MVI","WKR","SUNR","PDH"];
+
+  // Placeholder unit data per station — will be replaced by live Google Sheet data via backend.
+  const UNITS_BY_STATION = {
+    OKHA:["Okha Refreshment Room","Okha Static Catering Unit"],
+    MTHP:["Maliya Miyana Tea Point"],
+    DWK:["Dwarka Refreshment Stall","Dwarka Static Unit"],
+    BHTA:["Bhatia Catering Point"],
+    KMBL:["Kanalus Tea Stall"],
+    JAM:["Jamnagar Refreshment Room","Jamnagar Food Plaza","Jamnagar Static Unit"],
+    HAPA:["Hapa Catering Point"],
+    RJT:["Rajkot Refreshment Room","Rajkot Food Plaza","Rajkot Static Unit"],
+    BKNG:["Bhaktinagar Catering Point"],
+    MVI:["Morbi Refreshment Stall"],
+    WKR:["Wankaner Catering Point"],
+    SUNR:["Surendranagar Refreshment Room","Surendranagar Static Unit"],
+    PDH:["Paddhari Tea Stall"]
+  };
+
+  const stationSelect = document.getElementById('station');
+  STATIONS.forEach(code => {
+    const opt = document.createElement('option');
+    opt.value = code; opt.textContent = code;
+    stationSelect.appendChild(opt);
+  });
+
+  const unitInput = document.getElementById('unitName');
+  const unitList = document.getElementById('unitOptions');
+  const idNo = document.getElementById('idNo');
+  const nameInput = document.getElementById('name');
+  const designationSelect = document.getElementById('designation');
+
+  const badgeName = document.getElementById('badgeName');
+  const badgeMeta = document.getElementById('badgeMeta');
+  const badgeId = document.getElementById('badgeId');
+
+  function storageKey(station){ return 'vendorCounter_' + station; }
+
+  function previewNextId(station){
+    if(!station) return '--';
+    const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
+    const next = count + 1;
+    return station + String(next).padStart(3,'0');
+  }
+
+  function updateBadge(){
+    badgeName.textContent = nameInput.value.trim() || 'New Entry';
+    const st = stationSelect.value || 'Station not selected';
+    const des = designationSelect.value || 'Designation not selected';
+    badgeMeta.textContent = st + (stationSelect.value ? ' Station' : '') + ' \u00b7 ' + des;
+    badgeId.textContent = previewNextId(stationSelect.value);
+    idNo.value = stationSelect.value ? previewNextId(stationSelect.value) : '';
+  }
+
+  stationSelect.addEventListener('change', () => {
+    const station = stationSelect.value;
+    unitList.innerHTML = '';
+    const units = UNITS_BY_STATION[station] || [];
+    units.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u;
+      unitList.appendChild(opt);
+    });
+    unitInput.disabled = false;
+    unitInput.value = '';
+    unitInput.placeholder = units.length ? 'Search or select unit' : 'No units found — type unit name';
+    updateBadge();
+  });
+
+  nameInput.addEventListener('input', updateBadge);
+  designationSelect.addEventListener('change', updateBadge);
+
+  // File input labels
+  [['fPolice','fLabel1','fileBtn1'],['fMedical','fLabel2','fileBtn2'],['fFssai','fLabel3','fileBtn3']].forEach(([inputId,labelId,cardId])=>{
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    const card = document.getElementById(cardId);
+    input.addEventListener('change', () => {
+      if(input.files && input.files.length){
+        label.textContent = input.files[0].name.length > 22 ? input.files[0].name.slice(0,19)+'...' : input.files[0].name;
+        card.classList.add('has-file');
+      } else {
+        label.textContent = 'Tap to choose file';
+        card.classList.remove('has-file');
+      }
+    });
+  });
+
+  // Prevent past dates on all "Valid upto" date pickers
+  const today = new Date().toISOString().split('T')[0];
+  ['dPolice','dMedical','dFssai'].forEach(id => {
+    document.getElementById(id).setAttribute('min', today);
+  });
+
+  // Toast helper
+  const toast = document.getElementById('toast');
+  function showToast(msg, isError){
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  // ================= Review / Confirm Modal logic =================
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalBody = document.getElementById('modalBody');
+  const form = document.getElementById('vendorForm');
+
+  function val(id){ return document.getElementById(id).value.trim(); }
+  function hasFile(id){ return document.getElementById(id).files && document.getElementById(id).files.length > 0; }
+  function fileName(id){ return hasFile(id) ? document.getElementById(id).files[0].name : ''; }
+
+  function rvRow(labelEn, labelHi, value, isMissing){
+    return '<div class="rv-row">' +
+      '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
+      '<div class="rv-value' + (isMissing ? ' missing' : '') + '">' + value + '</div>' +
+    '</div>';
+  }
+
+  function rvDocRow(labelEn, labelHi, fileId, dateId){
+    const uploaded = hasFile(fileId);
+    const name = fileName(fileId);
+    const date = val(dateId);
+    let fileHtml = uploaded
+      ? '<span>' + name + '</span>'
+      : '<span class="missing">NOT UPLOADED / अपलोड नहीं किया गया</span>';
+    let dateHtml = date
+      ? '<span class="doc-date">Valid upto: ' + date + '</span>'
+      : '<span class="doc-date missing">VALIDITY DATE NOT SET / तिथि नहीं दी गई</span>';
+    return '<div class="rv-row">' +
+      '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
+      '<div class="rv-value">' + fileHtml + dateHtml + '</div>' +
+    '</div>';
+  }
+
+  function buildReviewModal(){
+    let missingCount = 0;
+    const checkMissing = (v) => { const m = !v; if(m) missingCount++; return m; };
+
+    let html = '';
+
+    html += '<div class="rv-group-title">PERSONAL DETAILS / व्यक्तिगत विवरण</div>';
+    html += rvRow('NAME','नाम', val('name') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('name')));
+    html += rvRow('STATION','स्टेशन', val('station') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('station')));
+    html += rvRow('DESIGNATION','पदनाम', val('designation') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('designation')));
+    html += rvRow('NAME OF UNIT','यूनिट का नाम', val('unitName') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('unitName')));
+    html += rvRow('MOBILE NO.','मोबाइल नंबर', val('mobile') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('mobile')));
+    html += rvRow('BLOOD GROUP','रक्त समूह', val('bloodGroup') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('bloodGroup')));
+    html += rvRow('AADHAR CARD NO.','आधार कार्ड नंबर', val('aadhar') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('aadhar')));
+    html += rvRow('ID NO.','आईडी नंबर', val('idNo') || previewNextId(stationSelect.value), false);
+
+    html += '<div class="rv-group-title">DOCUMENT UPLOAD / दस्तावेज़ अपलोड</div>';
+    html += rvDocRow('POLICE VERIFICATION CERTIFICATE','पुलिस सत्यापन प्रमाणपत्र','fPolice','dPolice');
+    html += rvDocRow('MEDICAL CERTIFICATE','मेडिकल प्रमाणपत्र','fMedical','dMedical');
+    html += rvDocRow('FSSAI LICENSE','एफएसएसएआई लाइसेंस','fFssai','dFssai');
+
+    if(!hasFile('fPolice') || !val('dPolice')) missingCount++;
+    if(!hasFile('fMedical') || !val('dMedical')) missingCount++;
+    if(!hasFile('fFssai') || !val('dFssai')) missingCount++;
+
+    if(missingCount > 0){
+      html += '<div class="rv-warning">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/></svg>' +
+        '<span>Some fields highlighted above are incomplete. You may still confirm and submit, or go back and edit.' +
+        '<br><span style="opacity:0.85">ऊपर हाइलाइट किए गए कुछ फ़ील्ड अधूरे हैं। आप फिर भी सबमिट कर सकते हैं, या पीछे जाकर संपादित कर सकते हैं।</span></span>' +
+      '</div>';
+    }
+
+    modalBody.innerHTML = html;
+  }
+
+  function openModal(){
+    buildReviewModal();
+    modalOverlay.classList.add('show');
+  }
+  function closeModal(){
+    modalOverlay.classList.remove('show');
+  }
+
+  document.getElementById('btnEdit').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
+
+  document.getElementById('btnConfirm').addEventListener('click', function(){
+    // Simulate ID assignment (increments the local counter — real DB logic comes with backend)
+    const station = stationSelect.value;
+    let assignedId = idNo.value || '--';
+    if(station){
+      const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
+      const next = count + 1;
+      localStorage.setItem(storageKey(station), String(next));
+      assignedId = station + String(next).padStart(3,'0');
+    }
+
+    closeModal();
+    showToast('Submitted \u2014 ID ' + assignedId + ' assigned (demo). Google Sheet sync pending.', false);
+
+    form.reset();
+    unitInput.disabled = true;
+    unitInput.placeholder = 'Select station to search units';
+    unitList.innerHTML = '';
+    document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
+    document.querySelectorAll('[id^="fLabel"]').forEach(l => l.textContent = 'Tap to choose file');
+    updateBadge();
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    openModal();
+  });
+
+  updateBadge();
+</script>
+
+</body>
+</html>

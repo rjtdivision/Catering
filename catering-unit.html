@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Catering Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#061a33;--navy-900:#0b2545;--navy-800:#123a6b;--navy-700:#1a4a86;
+    --cyan-500:#06b6d4;--cyan-400:#22d3ee;--cyan-100:#e3fbff;--cyan-50:#f0fdff;
+    --muted:#5a7291;--font-display:'Poppins',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--cyan-50);font-family:var(--font-body);}
+  .wrap{
+    height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px 26px;
+  }
+  .icon-badge{
+    width:64px;height:64px;border-radius:18px;margin-bottom:16px;
+    background:linear-gradient(135deg,var(--navy-950),var(--navy-700));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 16px rgba(11,37,69,0.25);
+  }
+  .icon-badge svg{width:30px;height:30px;stroke:var(--cyan-300,#67e8f9);fill:none;stroke-width:1.8;}
+  h2{font-family:var(--font-display);font-size:17px;color:var(--navy-800);margin:0 0 8px;}
+  p{font-size:13px;color:var(--muted);margin:0;max-width:260px;line-height:1.5;}
+  .tag{
+    margin-top:16px;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;
+    color:var(--cyan-500);background:var(--cyan-100);padding:5px 12px;border-radius:20px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon-badge"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+    <h2>Catering Unit</h2>
+    <p>Overview of all catering units under Rajkot Division will appear here.</p>
+    <div class="tag">Coming soon</div>
+  </div>
+</body>
+</html>

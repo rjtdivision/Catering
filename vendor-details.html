@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <style>
   :root{
     --navy-950:#061a33;
@@ -793,15 +794,45 @@
     const bold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
     const reg  = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
 
+    // Load a Hindi (Devanagari) capable font so field names can show in Hindi too.
+    // Falls back silently to English-only text if this can't be fetched (e.g. offline).
+    let hindiFont = null;
+    try{
+      if(typeof fontkit !== 'undefined' && typeof doc.registerFontkit === 'function'){
+        doc.registerFontkit(fontkit);
+        const hindiUrl = 'https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/phaseIII_only/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf';
+        const hindiBytes = await fetch(hindiUrl).then(r => { if(!r.ok) throw new Error('font fetch failed'); return r.arrayBuffer(); });
+        hindiFont = await doc.embedFont(hindiBytes);
+      }
+    } catch(e){ hindiFont = null; }
+
+    // Draws "English / Hindi" on one line, left-aligned at (x,y).
+    function drawBilingual(page, x, y, en, hi, size, enFont, color, hiSize){
+      page.drawText(en, { x, y, size, font: enFont, color });
+      let cursor = x + widthOf(enFont, en, size);
+      if(hindiFont && hi){
+        const sep = ' / ';
+        page.drawText(sep, { x: cursor, y, size, font: enFont, color });
+        cursor += widthOf(enFont, sep, size);
+        page.drawText(hi, { x: cursor, y, size: hiSize || size, font: hindiFont, color });
+      }
+    }
+
+    // Same as drawBilingual but right-aligned to xRight.
+    function drawBilingualRight(page, xRight, y, en, hi, size, enFont, color, hiSize){
+      let total = widthOf(enFont, en, size);
+      if(hindiFont && hi){ total += widthOf(enFont, ' / ', size) + widthOf(hindiFont, hi, hiSize || size); }
+      drawBilingual(page, xRight - total, y, en, hi, size, enFont, color, hiSize);
+    }
+
     const PAGE_W = 595.28, PAGE_H = 841.89, MARGIN = 36;
 
-    function drawHeader(page, titleRight, subRight){
+    function drawHeader(page, titleRight, titleRightHi, subRight){
       page.drawRectangle({ x:0, y:PAGE_H-70, width:PAGE_W, height:70, color:NAVY });
       page.drawText('CATERING UNIT MANAGEMENT', { x:MARGIN, y:PAGE_H-30, size:13, font:bold, color:WHITE });
       page.drawText('RAJKOT DIVISION - WESTERN RAILWAY', { x:MARGIN, y:PAGE_H-46, size:8, font:reg, color:CYAN300 });
       if(titleRight){
-        const tw = widthOf(bold, titleRight, 11);
-        page.drawText(titleRight, { x:PAGE_W-MARGIN-tw, y:PAGE_H-30, size:11, font:bold, color:WHITE });
+        drawBilingualRight(page, PAGE_W-MARGIN, PAGE_H-30, titleRight, titleRightHi, 10.5, bold, WHITE, 9.5);
       }
       if(subRight){
         const sw = widthOf(reg, subRight, 8);
@@ -815,7 +846,7 @@
 
     // ---------------- PAGE 1: Details + Photo + Signature + Aadhar ----------------
     const page1 = doc.addPage([PAGE_W, PAGE_H]);
-    drawHeader(page1, 'VENDOR DETAILS REPORT', 'Generated: ' + genDateStr);
+    drawHeader(page1, 'VENDOR DETAILS REPORT', 'वेंडर विवरण रिपोर्ट', 'Generated: ' + genDateStr);
 
     const contentTop = PAGE_H - 92;
     const PHOTO_W = 100, PHOTO_H = 128;
@@ -824,49 +855,54 @@
     const leftX = MARGIN;
     const photoY = contentTop - PHOTO_H;
     await drawCoverBox(doc, page1, getFile('fPhoto'), leftX, photoY, PHOTO_W, PHOTO_H, 'PHOTO', reg, MUTED, LINE, BG);
-    page1.drawText('PASSPORT PHOTO', { x:leftX, y:photoY-11, size:6.5, font:bold, color:MUTED });
+    drawBilingual(page1, leftX, photoY-11, 'PASSPORT PHOTO', 'फोटो', 6.5, bold, MUTED, 6.5);
 
     const signY = photoY - 12 - SIGN_H - 14;
     await drawContainBox(doc, page1, getFile('fSignature'), leftX, signY, SIGN_W, SIGN_H, reg, MUTED, LINE, BG, 'SIGNATURE NOT UPLOADED');
     page1.drawRectangle({ x:leftX, y:signY, width:SIGN_W, height:SIGN_H, borderColor:LINE, borderWidth:1 });
-    page1.drawText('SIGNATURE', { x:leftX, y:signY-11, size:6.5, font:bold, color:MUTED });
+    drawBilingual(page1, leftX, signY-11, 'SIGNATURE', 'हस्ताक्षर', 6.5, bold, MUTED, 6.5);
 
     const detX = leftX + PHOTO_W + 16;
     const detW = PAGE_W - MARGIN - detX;
     const details = [
-      ['NAME', val('name') || '-'],
-      ['STATION', val('station') || '-'],
-      ['DESIGNATION', val('designation') || '-'],
-      ['NAME OF UNIT', val('unitName') || '-'],
-      ['MOBILE NO.', val('mobile') || '-'],
-      ['BLOOD GROUP', val('bloodGroup') || '-'],
-      ['AADHAR CARD NO.', val('aadhar') || '-'],
-      ['ID NO.', val('idNo') || previewNextId(val('station')) || '-']
+      ['NAME', 'नाम', val('name') || '-'],
+      ['STATION', 'स्टेशन', val('station') || '-'],
+      ['DESIGNATION', 'पदनाम', val('designation') || '-'],
+      ['NAME OF UNIT', 'यूनिट का नाम', val('unitName') || '-'],
+      ['MOBILE NO.', 'मोबाइल नंबर', val('mobile') || '-'],
+      ['BLOOD GROUP', 'रक्त समूह', val('bloodGroup') || '-'],
+      ['AADHAR CARD NO.', 'आधार कार्ड नंबर', val('aadhar') || '-'],
+      ['ID NO.', 'आईडी नंबर', val('idNo') || previewNextId(val('station')) || '-']
     ];
 
     // ---- Professional details table (FIELD / DETAILS) ----
-    const labelColW = detW * 0.40;
+    const labelColW = detW * 0.42;
     const valueColW = detW - labelColW;
     const headerH = 17;
-    const rowH = 15.8;
+    const rowH = hindiFont ? 21 : 15.8;
     const tableTop = contentTop - 2;
     const STRIPE = PDFLib.rgb(0.965,0.985,0.997);
     const HEADER_DIV = PDFLib.rgb(0.20,0.38,0.60);
 
     page1.drawRectangle({ x:detX, y:tableTop-headerH, width:detW, height:headerH, color:NAVY800 });
-    page1.drawText('FIELD', { x:detX+7, y:tableTop-headerH+5.5, size:8, font:bold, color:WHITE });
-    page1.drawText('DETAILS', { x:detX+labelColW+7, y:tableTop-headerH+5.5, size:8, font:bold, color:WHITE });
+    drawBilingual(page1, detX+7, tableTop-headerH+5.5, 'FIELD', 'क्षेत्र', 8, bold, WHITE, 7.5);
+    drawBilingual(page1, detX+labelColW+7, tableTop-headerH+5.5, 'DETAILS', 'विवरण', 8, bold, WHITE, 7.5);
     page1.drawLine({ start:{x:detX+labelColW,y:tableTop}, end:{x:detX+labelColW,y:tableTop-headerH}, color:HEADER_DIV, thickness:0.75 });
 
     let rowY = tableTop - headerH;
-    details.forEach(([label, value], i) => {
+    details.forEach(([label, labelHi, value], i) => {
       page1.drawRectangle({ x:detX, y:rowY-rowH, width:detW, height:rowH, color: (i % 2 === 0 ? WHITE : STRIPE) });
-      page1.drawText(label, { x:detX+7, y:rowY-rowH+5, size:7.6, font:bold, color:NAVY800 });
+      if(hindiFont){
+        page1.drawText(label, { x:detX+7, y:rowY-8.5, size:7.2, font:bold, color:NAVY800 });
+        page1.drawText(labelHi, { x:detX+7, y:rowY-rowH+4.5, size:7, font:hindiFont, color:MUTED });
+      } else {
+        page1.drawText(label, { x:detX+7, y:rowY-rowH+5, size:7.6, font:bold, color:NAVY800 });
+      }
       let v = value;
       const maxW = valueColW - 12;
       while(widthOf(reg, v, 8) > maxW && v.length > 3){ v = v.slice(0, -1); }
       if(v !== value) v = v.slice(0,-1) + '…';
-      page1.drawText(v, { x:detX+labelColW+7, y:rowY-rowH+5, size:8, font:reg, color:INK });
+      page1.drawText(v, { x:detX+labelColW+7, y:rowY-rowH/2-3, size:8, font:reg, color:INK });
       page1.drawLine({ start:{x:detX+labelColW,y:rowY}, end:{x:detX+labelColW,y:rowY-rowH}, color:LINE, thickness:0.6 });
       page1.drawLine({ start:{x:detX,y:rowY-rowH}, end:{x:detX+detW,y:rowY-rowH}, color:LINE, thickness:0.6 });
       rowY -= rowH;
@@ -878,7 +914,7 @@
     const detBottom = rowY;
     let sectionY = Math.min(leftBottom, detBottom) - 20;
 
-    page1.drawText('AADHAR CARD', { x:MARGIN, y:sectionY, size:10.5, font:bold, color:NAVY800 });
+    drawBilingual(page1, MARGIN, sectionY, 'AADHAR CARD', 'आधार कार्ड', 10.5, bold, NAVY800, 9.5);
     page1.drawRectangle({ x:MARGIN, y:sectionY-4, width:3, height:11, color:CYAN });
     sectionY -= 16;
 
@@ -888,29 +924,29 @@
     const boxY = sectionY - boxH;
 
     await drawCoverBox(doc, page1, getFile('fAadharFront'), MARGIN, boxY, boxW, boxH, 'FRONT SIDE', reg, MUTED, LINE, BG);
-    page1.drawText('FRONT SIDE', { x:MARGIN, y:boxY-11, size:6.5, font:bold, color:MUTED });
+    drawBilingual(page1, MARGIN, boxY-11, 'FRONT SIDE', 'आगे', 6.5, bold, MUTED, 6.5);
 
     const rightX = MARGIN + boxW + gap;
     await drawCoverBox(doc, page1, getFile('fAadharBack'), rightX, boxY, boxW, boxH, 'BACK SIDE', reg, MUTED, LINE, BG);
-    page1.drawText('BACK SIDE', { x:rightX, y:boxY-11, size:6.5, font:bold, color:MUTED });
+    drawBilingual(page1, rightX, boxY-11, 'BACK SIDE', 'पीछे', 6.5, bold, MUTED, 6.5);
 
     const footNote = 'This is a system-generated report. Photo & Aadhar images are auto-fitted to a fixed frame.';
     page1.drawText(footNote, { x:MARGIN, y:20, size:6.5, font:reg, color:MUTED });
 
     // ---------------- Certificate pages (only if uploaded) ----------------
-    async function addCertPage(titleEn, fileId, dateId){
+    async function addCertPage(titleEn, titleHi, fileId, dateId){
       const file = getFile(fileId);
       if(!file) return;
       const page = doc.addPage([PAGE_W, PAGE_H]);
-      drawHeader(page, titleEn.toUpperCase(), val(dateId) ? ('Valid upto: ' + val(dateId)) : 'Validity date not provided');
+      drawHeader(page, titleEn.toUpperCase(), titleHi, val(dateId) ? ('Valid upto: ' + val(dateId)) : 'Validity date not provided');
       const areaX = MARGIN, areaY = MARGIN, areaW = PAGE_W - MARGIN*2, areaH = PAGE_H - 92 - MARGIN;
       page.drawRectangle({ x:areaX, y:areaY, width:areaW, height:areaH, borderColor:LINE, borderWidth:1 });
       await drawContainBox(doc, page, file, areaX+4, areaY+4, areaW-8, areaH-8, reg, MUTED, LINE, BG, null);
     }
 
-    await addCertPage('Police Verification Certificate', 'fPolice', 'dPolice');
-    await addCertPage('Medical Certificate', 'fMedical', 'dMedical');
-    await addCertPage('FSSAI License', 'fFssai', 'dFssai');
+    await addCertPage('Police Verification Certificate', 'पुलिस सत्यापन प्रमाणपत्र', 'fPolice', 'dPolice');
+    await addCertPage('Medical Certificate', 'मेडिकल प्रमाणपत्र', 'fMedical', 'dMedical');
+    await addCertPage('FSSAI License', 'एफएसएसएआई लाइसेंस', 'fFssai', 'dFssai');
 
     const bytes = await doc.save();
     return new Blob([bytes], { type: 'application/pdf' });

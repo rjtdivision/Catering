@@ -6,6 +6,7 @@
 <title>Vendor Details</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
   :root{
     --navy-950:#061a33;
@@ -35,44 +36,6 @@
     transform-origin:top center;
   }
 
-  /* ---- ID badge preview (signature element) ---- */
-  .badge{
-    position:relative;
-    border-radius:12px;
-    padding:9px 11px 8px;
-    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
-    color:#fff;
-    overflow:hidden;
-    margin-bottom:8px;
-    box-shadow:0 4px 12px rgba(11,37,69,0.25);
-  }
-  .badge::before{
-    content:"";
-    position:absolute;
-    top:-30px;right:-30px;
-    width:100px;height:100px;
-    border-radius:50%;
-    background:radial-gradient(circle,rgba(34,211,238,0.30),transparent 70%);
-  }
-  .badge-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
-  .badge-eyebrow{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan-300);font-weight:600;margin:0 0 2px;}
-  .badge-name{font-family:var(--font-display);font-size:14px;font-weight:600;margin:0;min-height:16px;}
-  .badge-meta{font-size:9.5px;color:#bcd4ea;margin-top:2px;}
-  .badge-id{
-    text-align:right;
-    font-family:var(--font-display);
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:0.8px;
-    color:var(--cyan-300);
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(103,232,249,0.35);
-    border-radius:7px;
-    padding:4px 7px;
-    min-width:66px;
-  }
-  .badge-id small{display:block;font-family:var(--font-body);font-size:7px;font-weight:500;letter-spacing:0.5px;color:#8fb0cf;text-transform:uppercase;margin-bottom:1px;}
-
   /* ---- Section ---- */
   .section-title{
     font-family:var(--font-display);
@@ -93,6 +56,7 @@
     background:var(--cyan-500);
     display:inline-block;
   }
+  .section-title:first-child{margin-top:2px;}
 
   .field{margin-bottom:6px;}
   .field label{
@@ -137,32 +101,9 @@
   }
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-
-  /* ---- radio pills for designation ---- */
-  .pill-group{display:flex;flex-wrap:wrap;gap:8px;}
-  .pill{
-    flex:1 1 calc(50% - 8px);
-    position:relative;
-  }
-  .pill input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0;width:100%;height:100%;}
-  .pill span{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px 6px;
-    font-size:12.5px;
-    font-weight:600;
-    color:var(--navy-800);
-    background:#fff;
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    text-align:center;
-  }
-  .pill input:checked + span{
-    background:linear-gradient(135deg,var(--navy-900),var(--navy-700));
-    border-color:var(--navy-700);
-    color:#fff;
-  }
+  .hi{color:var(--muted);font-weight:500;text-transform:none;font-size:8.5px;}
+  .field label .hi{font-size:8.5px;}
+  .req{color:var(--danger);}
 
   /* ---- upload rows ---- */
   .upload-card{
@@ -184,6 +125,7 @@
   }
   .upload-card .doc-title svg{width:12px;height:12px;stroke:var(--cyan-500);flex:0 0 auto;}
   .upload-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:6px;}
+  .upload-grid.even{grid-template-columns:1fr 1fr;}
   .file-btn{
     position:relative;
     border:1.5px dashed var(--line);
@@ -201,6 +143,7 @@
   .file-btn.has-file{border-style:solid;border-color:var(--cyan-500);color:var(--navy-800);background:var(--cyan-100);}
   .upload-grid label.mini{font-size:8px;color:var(--muted);font-weight:500;margin-bottom:2px;display:block;}
   input[type="date"]{padding:5px 6px;font-size:10.5px;}
+  .doc-row2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 
   /* ---- submit ---- */
   .submit-btn{
@@ -219,6 +162,7 @@
     cursor:pointer;
   }
   .submit-btn:active{transform:translateY(1px);}
+  .submit-btn:disabled{opacity:0.6;cursor:default;}
 
   .note{
     font-size:8px;
@@ -228,212 +172,101 @@
     line-height:1.4;
   }
 
-  /* ---- toast ---- */
-  #toast{
-    position:fixed;
-    left:50%;bottom:18px;
-    transform:translate(-50%,20px);
-    background:var(--navy-950);
-    color:#fff;
-    padding:11px 18px;
-    border-radius:10px;
-    font-size:12.5px;
-    font-weight:500;
-    box-shadow:0 8px 20px rgba(0,0,0,0.3);
-    opacity:0;
-    transition:opacity .25s ease, transform .25s ease;
-    pointer-events:none;
-    z-index:50;
-    max-width:88%;
-    text-align:center;
-    border:1px solid rgba(103,232,249,0.3);
-  }
-  #toast.show{opacity:1;transform:translate(-50%,0);}
-  #toast.error{border-color:rgba(224,69,90,0.5);}
-
-  .req{color:var(--danger);}
-
-  .hi{
-    color:var(--muted);
-    font-weight:500;
-    text-transform:none;
-    font-size:11px;
-  }
-
   /* ================= Review / Confirm Modal ================= */
   #modalOverlay{
-    position:fixed;
-    inset:0;
+    position:fixed;inset:0;
     background:rgba(6,20,40,0.55);
     backdrop-filter:blur(2px);
     display:none;
-    align-items:flex-end;
-    justify-content:center;
+    align-items:flex-end;justify-content:center;
     z-index:100;
   }
   #modalOverlay.show{display:flex;}
   .modal-card{
-    width:100%;
-    max-width:520px;
-    max-height:88vh;
-    background:#fff;
-    border-radius:20px 20px 0 0;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+    width:100%;max-width:520px;max-height:88vh;
+    background:#fff;border-radius:20px 20px 0 0;
+    display:flex;flex-direction:column;overflow:hidden;
     animation:slideUp .22s ease;
     box-shadow:0 -8px 30px rgba(0,0,0,0.3);
   }
-  @keyframes slideUp{
-    from{transform:translateY(24px);opacity:0;}
-    to{transform:translateY(0);opacity:1;}
-  }
+  @keyframes slideUp{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
   .modal-head{
     background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
-    color:#fff;
-    padding:16px 18px;
-    position:relative;
-    flex:0 0 auto;
+    color:#fff;padding:16px 18px;position:relative;flex:0 0 auto;
     border-bottom:2px solid var(--cyan-400);
   }
-  .modal-head h3{
-    font-family:var(--font-display);
-    font-size:15px;
-    margin:0 0 2px;
-    font-weight:600;
-  }
+  .modal-head h3{font-family:var(--font-display);font-size:15px;margin:0 0 2px;font-weight:600;}
   .modal-head p{margin:0;font-size:11px;color:var(--cyan-300);}
-  .modal-head .hi-sub{color:#bcd4ea;font-size:10.5px;}
-
-  .modal-body{
-    padding:14px 18px 4px;
-    overflow-y:auto;
-    flex:1 1 auto;
-  }
+  .modal-body{padding:14px 18px 4px;overflow-y:auto;flex:1 1 auto;}
   .rv-group-title{
-    font-family:var(--font-display);
-    font-size:11px;
-    font-weight:600;
-    color:var(--cyan-500);
-    text-transform:uppercase;
-    letter-spacing:0.6px;
-    margin:14px 0 8px;
+    font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--cyan-500);
+    text-transform:uppercase;letter-spacing:0.6px;margin:14px 0 8px;
   }
   .rv-group-title:first-child{margin-top:2px;}
-  .rv-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:10px;
-    padding:9px 0;
-    border-bottom:1px solid var(--cyan-50);
-  }
-  .rv-label{
-    font-size:11px;
-    font-weight:600;
-    color:var(--navy-800);
-    min-width:40%;
-    line-height:1.4;
-  }
+  .rv-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--cyan-50);}
+  .rv-label{font-size:11px;font-weight:600;color:var(--navy-800);min-width:40%;line-height:1.4;}
   .rv-label .hi{display:block;font-size:10px;color:var(--muted);font-weight:400;}
-  .rv-value{
-    font-size:12.5px;
-    font-weight:600;
-    color:var(--ink);
-    text-align:right;
-    line-height:1.4;
-    word-break:break-word;
-  }
-  .rv-value.missing{
-    color:#b3271a;
-    background:#fdeceb;
-    border:1px solid #f3b9b3;
-    padding:3px 8px;
-    border-radius:6px;
-    font-size:11px;
-    font-weight:600;
-  }
-  .rv-value .doc-date{
-    display:block;
-    font-size:10.5px;
-    font-weight:500;
-    color:var(--muted);
-    margin-top:2px;
-  }
-  .rv-value .doc-date.missing{
-    color:#b3271a;
-    background:#fdeceb;
-    border:1px solid #f3b9b3;
-    padding:2px 7px;
-    border-radius:6px;
-    display:inline-block;
-    margin-top:3px;
-  }
+  .rv-value{font-size:12.5px;font-weight:600;color:var(--ink);text-align:right;line-height:1.4;word-break:break-word;}
+  .rv-value.missing{color:#b3271a;background:#fdeceb;border:1px solid #f3b9b3;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;}
+  .rv-value .doc-date{display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px;}
+  .rv-value .doc-date.missing{color:#b3271a;background:#fdeceb;border:1px solid #f3b9b3;padding:2px 7px;border-radius:6px;display:inline-block;margin-top:3px;}
   .rv-warning{
-    display:flex;
-    gap:8px;
-    align-items:flex-start;
-    background:#fff6e0;
-    border:1px solid #f2d38a;
-    color:#8a5a00;
-    border-radius:10px;
-    padding:10px 11px;
-    font-size:11px;
-    line-height:1.5;
-    margin:14px 0 4px;
+    display:flex;gap:8px;align-items:flex-start;background:#fff6e0;border:1px solid #f2d38a;
+    color:#8a5a00;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin:14px 0 4px;
   }
   .rv-warning svg{width:16px;height:16px;flex:0 0 auto;stroke:#c07d00;margin-top:1px;}
-
-  .modal-foot{
-    flex:0 0 auto;
-    padding:12px 18px calc(14px + env(safe-area-inset-bottom));
-    display:flex;
-    gap:10px;
-    border-top:1px solid var(--line);
-    background:#fff;
-  }
-  .modal-foot button{
-    flex:1;
-    padding:13px 8px;
-    border-radius:11px;
-    font-family:var(--font-display);
-    font-size:13px;
-    font-weight:600;
-    border:none;
-    cursor:pointer;
-  }
-  .btn-edit{
-    background:#fff;
-    color:var(--navy-800);
-    border:1.5px solid var(--line) !important;
-  }
-  .btn-confirm{
-    background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
-    color:var(--navy-950);
-    box-shadow:0 5px 14px rgba(6,182,212,0.35);
-  }
+  .modal-foot{flex:0 0 auto;padding:12px 18px calc(14px + env(safe-area-inset-bottom));display:flex;gap:10px;border-top:1px solid var(--line);background:#fff;}
+  .modal-foot button{flex:1;padding:13px 8px;border-radius:11px;font-family:var(--font-display);font-size:13px;font-weight:600;border:none;cursor:pointer;}
+  .btn-edit{background:#fff;color:var(--navy-800);border:1.5px solid var(--line) !important;}
+  .btn-confirm{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);box-shadow:0 5px 14px rgba(6,182,212,0.35);}
   .btn-confirm:active, .btn-edit:active{transform:translateY(1px);}
+  .btn-confirm:disabled{opacity:0.65;}
+
+  /* ================= PDF Preview Overlay ================= */
+  #pdfOverlay{
+    position:fixed;inset:0;background:var(--navy-950);
+    display:none;flex-direction:column;z-index:200;
+  }
+  #pdfOverlay.show{display:flex;}
+  .pdf-head{
+    flex:0 0 auto;
+    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
+    color:#fff;padding:12px 14px;border-bottom:2px solid var(--cyan-400);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .pdf-head h3{font-family:var(--font-display);font-size:13.5px;margin:0;font-weight:600;}
+  .pdf-head p{margin:1px 0 0;font-size:10px;color:var(--cyan-300);}
+  .pdf-head-btns{display:flex;gap:6px;flex:0 0 auto;}
+  .pdf-head-btns a, .pdf-head-btns button{
+    font-family:var(--font-display);font-size:10.5px;font-weight:600;
+    border-radius:8px;padding:7px 10px;border:none;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;
+  }
+  .btn-dl{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);}
+  .btn-close{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25) !important;}
+  #pdfFrame{flex:1 1 auto;width:100%;border:0;background:#4a5b6e;}
+  .pdf-loading{
+    flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#bcd4ea;font-size:12px;gap:10px;
+  }
+  .spinner{width:26px;height:26px;border:3px solid rgba(255,255,255,0.2);border-top-color:var(--cyan-400);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- toast ---- */
+  #toast{
+    position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);
+    background:var(--navy-950);color:#fff;padding:11px 18px;border-radius:10px;
+    font-size:12.5px;font-weight:500;box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;z-index:300;
+    max-width:88%;text-align:center;border:1px solid rgba(103,232,249,0.3);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+  #toast.error{border-color:rgba(224,69,90,0.5);}
 </style>
 </head>
 <body>
 
 <div id="fitStage">
-
-  <!-- Signature element: live ID badge preview -->
-  <div class="badge">
-    <div class="badge-row">
-      <div>
-        <p class="badge-eyebrow">Vendor Identity Card</p>
-        <p class="badge-name" id="badgeName">New Entry</p>
-        <p class="badge-meta" id="badgeMeta">Station not selected &middot; Designation not selected</p>
-      </div>
-      <div class="badge-id">
-        <small>ID No.</small>
-        <span id="badgeId">--</span>
-      </div>
-    </div>
-  </div>
-
   <form id="vendorForm" novalidate>
 
     <div class="section-title">PERSONAL DETAILS <span class="hi">/ व्यक्तिगत विवरण</span></div>
@@ -496,7 +329,56 @@
       </div>
     </div>
 
-    <div class="section-title">DOCUMENT UPLOAD <span class="hi">/ दस्तावेज़ अपलोड</span></div>
+    <div class="section-title">IDENTITY DOCUMENTS <span class="hi">/ पहचान दस्तावेज़</span></div>
+
+    <div class="doc-row2">
+      <div class="upload-card">
+        <div class="doc-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          PASSPORT PHOTO <span class="hi">/ फोटो</span>
+        </div>
+        <div class="file-btn" id="fileBtnPhoto">
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/*">
+          <span id="fLabelPhoto">Tap to choose file</span>
+        </div>
+      </div>
+
+      <div class="upload-card">
+        <div class="doc-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/><path d="M14.06 6.19l3.75 3.75 2.12-2.12a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0z"/></svg>
+          SIGNATURE <span class="hi">/ हस्ताक्षर</span>
+        </div>
+        <div class="file-btn" id="fileBtnSign">
+          <input type="file" id="fSignature" name="fSignature" accept="image/*">
+          <span id="fLabelSign">Tap to choose file</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-card">
+      <div class="doc-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M13 10h6M13 14h4"/></svg>
+        AADHAR CARD <span class="hi">/ आधार कार्ड</span>
+      </div>
+      <div class="upload-grid even">
+        <div>
+          <label class="mini">FRONT SIDE <span class="hi">/ आगे</span></label>
+          <div class="file-btn" id="fileBtnAF">
+            <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*,.pdf">
+            <span id="fLabelAF">Tap to choose file</span>
+          </div>
+        </div>
+        <div>
+          <label class="mini">BACK SIDE <span class="hi">/ पीछे</span></label>
+          <div class="file-btn" id="fileBtnAB">
+            <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*,.pdf">
+            <span id="fLabelAB">Tap to choose file</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">CERTIFICATE UPLOAD <span class="hi">/ प्रमाणपत्र अपलोड</span></div>
 
     <div class="upload-card">
       <div class="doc-title">
@@ -505,14 +387,14 @@
       </div>
       <div class="upload-grid">
         <div>
-          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn1">
             <input type="file" id="fPolice" name="fPolice" accept=".pdf,.jpg,.jpeg,.png">
             <span id="fLabel1">Tap to choose file</span>
           </div>
         </div>
         <div>
-          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
           <input type="date" id="dPolice" name="dPolice">
         </div>
       </div>
@@ -525,14 +407,14 @@
       </div>
       <div class="upload-grid">
         <div>
-          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn2">
             <input type="file" id="fMedical" name="fMedical" accept=".pdf,.jpg,.jpeg,.png">
             <span id="fLabel2">Tap to choose file</span>
           </div>
         </div>
         <div>
-          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
           <input type="date" id="dMedical" name="dMedical">
         </div>
       </div>
@@ -545,21 +427,21 @@
       </div>
       <div class="upload-grid">
         <div>
-          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड करें</span></label>
+          <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn3">
             <input type="file" id="fFssai" name="fFssai" accept=".pdf,.jpg,.jpeg,.png">
             <span id="fLabel3">Tap to choose file</span>
           </div>
         </div>
         <div>
-          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि तक</span></label>
+          <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
           <input type="date" id="dFssai" name="dFssai">
         </div>
       </div>
     </div>
 
     <button type="submit" class="submit-btn">SUBMIT VENDOR DETAILS <span class="hi" style="color:rgba(11,37,69,0.65)">/ विवरण सबमिट करें</span></button>
-    <p class="note">Data will be saved to the Google Sheet database.<br>(Backend connection to be integrated next.)</p>
+    <p class="note">On confirm, a PDF report will be generated and shown on screen.<br>(Saving to the Google Sheet database will be integrated next.)</p>
 
   </form>
 </div>
@@ -577,6 +459,25 @@
       <button type="button" class="btn-confirm" id="btnConfirm">CONFIRM &amp; SUBMIT</button>
     </div>
   </div>
+</div>
+
+<!-- ================= PDF Preview Overlay ================= -->
+<div id="pdfOverlay">
+  <div class="pdf-head">
+    <div>
+      <h3>VENDOR DETAILS REPORT</h3>
+      <p>वेंडर विवरण रिपोर्ट</p>
+    </div>
+    <div class="pdf-head-btns">
+      <a class="btn-dl" id="btnDownload" href="#" download="vendor-details-report.pdf">DOWNLOAD</a>
+      <button class="btn-close" id="btnPdfClose">CLOSE</button>
+    </div>
+  </div>
+  <div class="pdf-loading" id="pdfLoading">
+    <div class="spinner"></div>
+    <span>Generating PDF report&hellip; / रिपोर्ट तैयार हो रही है&hellip;</span>
+  </div>
+  <iframe id="pdfFrame" style="display:none;" title="Vendor details PDF report"></iframe>
 </div>
 
 <div id="toast"></div>
@@ -611,28 +512,18 @@
   const unitInput = document.getElementById('unitName');
   const unitList = document.getElementById('unitOptions');
   const idNo = document.getElementById('idNo');
-  const nameInput = document.getElementById('name');
   const designationSelect = document.getElementById('designation');
-
-  const badgeName = document.getElementById('badgeName');
-  const badgeMeta = document.getElementById('badgeMeta');
-  const badgeId = document.getElementById('badgeId');
 
   function storageKey(station){ return 'vendorCounter_' + station; }
 
   function previewNextId(station){
-    if(!station) return '--';
+    if(!station) return '';
     const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
     const next = count + 1;
     return station + String(next).padStart(3,'0');
   }
 
-  function updateBadge(){
-    badgeName.textContent = nameInput.value.trim() || 'New Entry';
-    const st = stationSelect.value || 'Station not selected';
-    const des = designationSelect.value || 'Designation not selected';
-    badgeMeta.textContent = st + (stationSelect.value ? ' Station' : '') + ' \u00b7 ' + des;
-    badgeId.textContent = previewNextId(stationSelect.value);
+  function updateIdNo(){
     idNo.value = stationSelect.value ? previewNextId(stationSelect.value) : '';
   }
 
@@ -648,20 +539,25 @@
     unitInput.disabled = false;
     unitInput.value = '';
     unitInput.placeholder = units.length ? 'Search or select unit' : 'No units found — type unit name';
-    updateBadge();
+    updateIdNo();
   });
 
-  nameInput.addEventListener('input', updateBadge);
-  designationSelect.addEventListener('change', updateBadge);
-
   // File input labels
-  [['fPolice','fLabel1','fileBtn1'],['fMedical','fLabel2','fileBtn2'],['fFssai','fLabel3','fileBtn3']].forEach(([inputId,labelId,cardId])=>{
+  [
+    ['fPhoto','fLabelPhoto','fileBtnPhoto'],
+    ['fSignature','fLabelSign','fileBtnSign'],
+    ['fAadharFront','fLabelAF','fileBtnAF'],
+    ['fAadharBack','fLabelAB','fileBtnAB'],
+    ['fPolice','fLabel1','fileBtn1'],
+    ['fMedical','fLabel2','fileBtn2'],
+    ['fFssai','fLabel3','fileBtn3']
+  ].forEach(([inputId,labelId,cardId])=>{
     const input = document.getElementById(inputId);
     const label = document.getElementById(labelId);
     const card = document.getElementById(cardId);
     input.addEventListener('change', () => {
       if(input.files && input.files.length){
-        label.textContent = input.files[0].name.length > 22 ? input.files[0].name.slice(0,19)+'...' : input.files[0].name;
+        label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
         card.classList.add('has-file');
       } else {
         label.textContent = 'Tap to choose file';
@@ -682,17 +578,17 @@
     toast.textContent = msg;
     toast.classList.toggle('error', !!isError);
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2800);
+    setTimeout(() => toast.classList.remove('show'), 3200);
   }
 
   // ================= Review / Confirm Modal logic =================
   const modalOverlay = document.getElementById('modalOverlay');
   const modalBody = document.getElementById('modalBody');
   const form = document.getElementById('vendorForm');
+  const btnConfirm = document.getElementById('btnConfirm');
 
   function val(id){ return document.getElementById(id).value.trim(); }
-  function hasFile(id){ return document.getElementById(id).files && document.getElementById(id).files.length > 0; }
-  function fileName(id){ return hasFile(id) ? document.getElementById(id).files[0].name : ''; }
+  function getFile(id){ const f = document.getElementById(id).files; return (f && f.length) ? f[0] : null; }
 
   function rvRow(labelEn, labelHi, value, isMissing){
     return '<div class="rv-row">' +
@@ -701,16 +597,21 @@
     '</div>';
   }
 
+  function rvFileRow(labelEn, labelHi, fileId){
+    const uploaded = !!getFile(fileId);
+    const inner = uploaded ? getFile(fileId).name : '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    return '<div class="rv-row">' +
+      '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
+      '<div class="rv-value">' + inner + '</div>' +
+    '</div>';
+  }
+
   function rvDocRow(labelEn, labelHi, fileId, dateId){
-    const uploaded = hasFile(fileId);
-    const name = fileName(fileId);
+    const uploaded = !!getFile(fileId);
+    const name = uploaded ? getFile(fileId).name : '';
     const date = val(dateId);
-    let fileHtml = uploaded
-      ? '<span>' + name + '</span>'
-      : '<span class="missing">NOT UPLOADED / अपलोड नहीं किया गया</span>';
-    let dateHtml = date
-      ? '<span class="doc-date">Valid upto: ' + date + '</span>'
-      : '<span class="doc-date missing">VALIDITY DATE NOT SET / तिथि नहीं दी गई</span>';
+    let fileHtml = uploaded ? '<span>' + name + '</span>' : '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    let dateHtml = date ? '<span class="doc-date">Valid upto: ' + date + '</span>' : '<span class="doc-date missing">DATE NOT SET / तिथि नहीं</span>';
     return '<div class="rv-row">' +
       '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
       '<div class="rv-value">' + fileHtml + dateHtml + '</div>' +
@@ -722,25 +623,31 @@
     const checkMissing = (v) => { const m = !v; if(m) missingCount++; return m; };
 
     let html = '';
-
     html += '<div class="rv-group-title">PERSONAL DETAILS / व्यक्तिगत विवरण</div>';
-    html += rvRow('NAME','नाम', val('name') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('name')));
+    html += rvRow('NAME','नाम', val('name') || 'NOT FILLED / भरा नहीं', checkMissing(val('name')));
     html += rvRow('STATION','स्टेशन', val('station') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('station')));
     html += rvRow('DESIGNATION','पदनाम', val('designation') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('designation')));
-    html += rvRow('NAME OF UNIT','यूनिट का नाम', val('unitName') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('unitName')));
-    html += rvRow('MOBILE NO.','मोबाइल नंबर', val('mobile') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('mobile')));
+    html += rvRow('NAME OF UNIT','यूनिट का नाम', val('unitName') || 'NOT FILLED / भरा नहीं', checkMissing(val('unitName')));
+    html += rvRow('MOBILE NO.','मोबाइल नंबर', val('mobile') || 'NOT FILLED / भरा नहीं', checkMissing(val('mobile')));
     html += rvRow('BLOOD GROUP','रक्त समूह', val('bloodGroup') || 'NOT SELECTED / चयनित नहीं', checkMissing(val('bloodGroup')));
-    html += rvRow('AADHAR CARD NO.','आधार कार्ड नंबर', val('aadhar') || 'NOT FILLED / भरा नहीं गया', checkMissing(val('aadhar')));
-    html += rvRow('ID NO.','आईडी नंबर', val('idNo') || previewNextId(stationSelect.value), false);
+    html += rvRow('AADHAR CARD NO.','आधार कार्ड नंबर', val('aadhar') || 'NOT FILLED / भरा नहीं', checkMissing(val('aadhar')));
+    html += rvRow('ID NO.','आईडी नंबर', val('idNo') || previewNextId(stationSelect.value) || '--', false);
 
-    html += '<div class="rv-group-title">DOCUMENT UPLOAD / दस्तावेज़ अपलोड</div>';
+    html += '<div class="rv-group-title">IDENTITY DOCUMENTS / पहचान दस्तावेज़</div>';
+    html += rvFileRow('PASSPORT PHOTO','फोटो','fPhoto');
+    html += rvFileRow('SIGNATURE','हस्ताक्षर','fSignature');
+    html += rvFileRow('AADHAR — FRONT SIDE','आधार आगे','fAadharFront');
+    html += rvFileRow('AADHAR — BACK SIDE','आधार पीछे','fAadharBack');
+
+    html += '<div class="rv-group-title">CERTIFICATE UPLOAD / प्रमाणपत्र अपलोड</div>';
     html += rvDocRow('POLICE VERIFICATION CERTIFICATE','पुलिस सत्यापन प्रमाणपत्र','fPolice','dPolice');
     html += rvDocRow('MEDICAL CERTIFICATE','मेडिकल प्रमाणपत्र','fMedical','dMedical');
     html += rvDocRow('FSSAI LICENSE','एफएसएसएआई लाइसेंस','fFssai','dFssai');
 
-    if(!hasFile('fPolice') || !val('dPolice')) missingCount++;
-    if(!hasFile('fMedical') || !val('dMedical')) missingCount++;
-    if(!hasFile('fFssai') || !val('dFssai')) missingCount++;
+    ['fPhoto','fSignature','fAadharFront','fAadharBack'].forEach(id => { if(!getFile(id)) missingCount++; });
+    if(!getFile('fPolice') || !val('dPolice')) missingCount++;
+    if(!getFile('fMedical') || !val('dMedical')) missingCount++;
+    if(!getFile('fFssai') || !val('dFssai')) missingCount++;
 
     if(missingCount > 0){
       html += '<div class="rv-warning">' +
@@ -749,23 +656,281 @@
         '<br><span style="opacity:0.85">ऊपर हाइलाइट किए गए कुछ फ़ील्ड अधूरे हैं। आप फिर भी सबमिट कर सकते हैं, या पीछे जाकर संपादित कर सकते हैं।</span></span>' +
       '</div>';
     }
-
     modalBody.innerHTML = html;
   }
 
-  function openModal(){
-    buildReviewModal();
-    modalOverlay.classList.add('show');
-  }
-  function closeModal(){
-    modalOverlay.classList.remove('show');
-  }
+  function openModal(){ buildReviewModal(); modalOverlay.classList.add('show'); }
+  function closeModal(){ modalOverlay.classList.remove('show'); }
 
   document.getElementById('btnEdit').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
 
-  document.getElementById('btnConfirm').addEventListener('click', function(){
-    // Simulate ID assignment (increments the local counter — real DB logic comes with backend)
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    openModal();
+  });
+
+  // ================= PDF report generation (pdf-lib) =================
+  const pdfOverlay = document.getElementById('pdfOverlay');
+  const pdfFrame = document.getElementById('pdfFrame');
+  const pdfLoading = document.getElementById('pdfLoading');
+  const btnDownload = document.getElementById('btnDownload');
+  const btnPdfClose = document.getElementById('btnPdfClose');
+  let currentPdfUrl = null;
+
+  function loadImageFromFile(file){
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { resolve(img); URL.revokeObjectURL(url); };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  // Cover-crop: normalizes any uploaded image into a fixed pixel box (crops to fill, no distortion).
+  async function coverCropDataUrl(file, boxWpx, boxHpx){
+    const img = await loadImageFromFile(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = boxWpx; canvas.height = boxHpx;
+    const ctx = canvas.getContext('2d');
+    const scale = Math.max(boxWpx / img.width, boxHpx / img.height);
+    const sw = img.width * scale, sh = img.height * scale;
+    const dx = (boxWpx - sw) / 2, dy = (boxHpx - sh) / 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,boxWpx,boxHpx);
+    ctx.drawImage(img, dx, dy, sw, sh);
+    return canvas.toDataURL('image/jpeg', 0.88);
+  }
+
+  function dataUrlToBytes(dataUrl){
+    const base64 = dataUrl.split(',')[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function widthOf(font, text, size){ return font.widthOfTextAtSize(text, size); }
+
+  function drawPlaceholderBox(page, x, y, w, h, label, font, muted, lineColor, bg){
+    page.drawRectangle({ x, y, width:w, height:h, color:bg, borderColor:lineColor, borderWidth:1, borderDashArray:[4,4] });
+    const size = 7.5;
+    const tw = widthOf(font, label, size);
+    page.drawText(label, { x: x + (w - tw)/2, y: y + h/2 - 3, size, font, color: muted });
+  }
+
+  // Fixed-size "cover" box — used for Photo & Aadhar front/back (fills box exactly, cropping as needed).
+  async function drawCoverBox(doc, page, file, x, y, w, h, label, font, muted, lineColor, bg){
+    if(!file){ drawPlaceholderBox(page, x, y, w, h, label + ' NOT UPLOADED', font, muted, lineColor, bg); return; }
+    try{
+      if(file.type.startsWith('image/')){
+        const res = 3;
+        const dataUrl = await coverCropDataUrl(file, Math.round(w*res), Math.round(h*res));
+        const bytes = dataUrlToBytes(dataUrl);
+        const img = await doc.embedJpg(bytes);
+        page.drawImage(img, { x, y, width:w, height:h });
+        page.drawRectangle({ x, y, width:w, height:h, borderColor:lineColor, borderWidth:1 });
+      } else if(file.type === 'application/pdf'){
+        const buf = await file.arrayBuffer();
+        const srcDoc = await PDFLib.PDFDocument.load(buf);
+        const srcPage = srcDoc.getPages()[0];
+        const embedded = await doc.embedPage(srcPage);
+        const scale = Math.min(w/embedded.width, h/embedded.height);
+        const dw = embedded.width*scale, dh = embedded.height*scale;
+        page.drawRectangle({ x, y, width:w, height:h, color:bg });
+        page.drawPage(embedded, { x: x+(w-dw)/2, y: y+(h-dh)/2, width:dw, height:dh });
+        page.drawRectangle({ x, y, width:w, height:h, borderColor:lineColor, borderWidth:1 });
+      }
+    } catch(err){
+      drawPlaceholderBox(page, x, y, w, h, 'PREVIEW UNAVAILABLE', font, muted, lineColor, bg);
+    }
+  }
+
+  // Contain-fit box — used for Signature and full certificate pages (shows entire file, no cropping).
+  async function drawContainBox(doc, page, file, x, y, w, h, font, muted, lineColor, bg, emptyLabel){
+    if(!file){ if(emptyLabel) drawPlaceholderBox(page, x, y, w, h, emptyLabel, font, muted, lineColor, bg); return; }
+    try{
+      let embedded;
+      if(file.type === 'image/png'){
+        const buf = await file.arrayBuffer();
+        embedded = await doc.embedPng(buf);
+      } else if(file.type.startsWith('image/')){
+        const buf = await file.arrayBuffer();
+        embedded = await doc.embedJpg(buf);
+      } else if(file.type === 'application/pdf'){
+        const buf = await file.arrayBuffer();
+        const srcDoc = await PDFLib.PDFDocument.load(buf);
+        const srcPage = srcDoc.getPages()[0];
+        embedded = await doc.embedPage(srcPage);
+      }
+      if(!embedded) return;
+      const scale = Math.min(w/embedded.width, h/embedded.height);
+      const dw = embedded.width*scale, dh = embedded.height*scale;
+      const dx = x + (w-dw)/2, dy = y + (h-dh)/2;
+      if(typeof embedded.drawPage !== 'undefined' || file.type === 'application/pdf'){
+        page.drawPage(embedded, { x:dx, y:dy, width:dw, height:dh });
+      } else {
+        page.drawImage(embedded, { x:dx, y:dy, width:dw, height:dh });
+      }
+    } catch(err){
+      page.drawText('Unable to preview attached file.', { x: x+10, y: y+h/2, size:10, font, color: PDFLib.rgb(0.7,0.2,0.2) });
+    }
+  }
+
+  async function generatePdfReport(){
+    const NAVY   = PDFLib.rgb(0.0235,0.1020,0.2000);
+    const NAVY800= PDFLib.rgb(0.0706,0.2275,0.4196);
+    const CYAN   = PDFLib.rgb(0.0235,0.7137,0.8314);
+    const CYAN300= PDFLib.rgb(0.4039,0.9098,0.9765);
+    const MUTED  = PDFLib.rgb(0.3529,0.4471,0.5686);
+    const INK    = PDFLib.rgb(0.0431,0.1451,0.2706);
+    const LINE   = PDFLib.rgb(0.84,0.91,0.96);
+    const BG     = PDFLib.rgb(0.945,0.975,0.988);
+    const WHITE  = PDFLib.rgb(1,1,1);
+
+    const doc = await PDFLib.PDFDocument.create();
+    const bold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    const reg  = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+    const PAGE_W = 595.28, PAGE_H = 841.89, MARGIN = 36;
+
+    function drawHeader(page, titleRight, subRight){
+      page.drawRectangle({ x:0, y:PAGE_H-70, width:PAGE_W, height:70, color:NAVY });
+      page.drawText('CATERING UNIT MANAGEMENT', { x:MARGIN, y:PAGE_H-30, size:13, font:bold, color:WHITE });
+      page.drawText('RAJKOT DIVISION - WESTERN RAILWAY', { x:MARGIN, y:PAGE_H-46, size:8, font:reg, color:CYAN300 });
+      if(titleRight){
+        const tw = widthOf(bold, titleRight, 11);
+        page.drawText(titleRight, { x:PAGE_W-MARGIN-tw, y:PAGE_H-30, size:11, font:bold, color:WHITE });
+      }
+      if(subRight){
+        const sw = widthOf(reg, subRight, 8);
+        page.drawText(subRight, { x:PAGE_W-MARGIN-sw, y:PAGE_H-46, size:8, font:reg, color:CYAN300 });
+      }
+      page.drawRectangle({ x:0, y:PAGE_H-72, width:PAGE_W, height:2, color:CYAN });
+    }
+
+    const genDate = new Date();
+    const genDateStr = String(genDate.getDate()).padStart(2,'0') + '/' + String(genDate.getMonth()+1).padStart(2,'0') + '/' + genDate.getFullYear();
+
+    // ---------------- PAGE 1: Details + Photo + Signature + Aadhar ----------------
+    const page1 = doc.addPage([PAGE_W, PAGE_H]);
+    drawHeader(page1, 'VENDOR DETAILS REPORT', 'Generated: ' + genDateStr);
+
+    const contentTop = PAGE_H - 92;
+    const PHOTO_W = 100, PHOTO_H = 128;
+    const SIGN_W = 100, SIGN_H = 48;
+
+    const leftX = MARGIN;
+    const photoY = contentTop - PHOTO_H;
+    await drawCoverBox(doc, page1, getFile('fPhoto'), leftX, photoY, PHOTO_W, PHOTO_H, 'PHOTO', reg, MUTED, LINE, BG);
+    page1.drawText('PASSPORT PHOTO', { x:leftX, y:photoY-11, size:6.5, font:bold, color:MUTED });
+
+    const signY = photoY - 12 - SIGN_H - 14;
+    await drawContainBox(doc, page1, getFile('fSignature'), leftX, signY, SIGN_W, SIGN_H, reg, MUTED, LINE, BG, 'SIGNATURE NOT UPLOADED');
+    page1.drawRectangle({ x:leftX, y:signY, width:SIGN_W, height:SIGN_H, borderColor:LINE, borderWidth:1 });
+    page1.drawText('SIGNATURE', { x:leftX, y:signY-11, size:6.5, font:bold, color:MUTED });
+
+    const detX = leftX + PHOTO_W + 16;
+    const detW = PAGE_W - MARGIN - detX;
+    const details = [
+      ['NAME', val('name') || '-'],
+      ['STATION', val('station') || '-'],
+      ['DESIGNATION', val('designation') || '-'],
+      ['NAME OF UNIT', val('unitName') || '-'],
+      ['MOBILE NO.', val('mobile') || '-'],
+      ['BLOOD GROUP', val('bloodGroup') || '-'],
+      ['AADHAR CARD NO.', val('aadhar') || '-'],
+      ['ID NO.', val('idNo') || previewNextId(val('station')) || '-']
+    ];
+
+    // ---- Professional details table (FIELD / DETAILS) ----
+    const labelColW = detW * 0.40;
+    const valueColW = detW - labelColW;
+    const headerH = 17;
+    const rowH = 15.8;
+    const tableTop = contentTop - 2;
+    const STRIPE = PDFLib.rgb(0.965,0.985,0.997);
+    const HEADER_DIV = PDFLib.rgb(0.20,0.38,0.60);
+
+    page1.drawRectangle({ x:detX, y:tableTop-headerH, width:detW, height:headerH, color:NAVY800 });
+    page1.drawText('FIELD', { x:detX+7, y:tableTop-headerH+5.5, size:8, font:bold, color:WHITE });
+    page1.drawText('DETAILS', { x:detX+labelColW+7, y:tableTop-headerH+5.5, size:8, font:bold, color:WHITE });
+    page1.drawLine({ start:{x:detX+labelColW,y:tableTop}, end:{x:detX+labelColW,y:tableTop-headerH}, color:HEADER_DIV, thickness:0.75 });
+
+    let rowY = tableTop - headerH;
+    details.forEach(([label, value], i) => {
+      page1.drawRectangle({ x:detX, y:rowY-rowH, width:detW, height:rowH, color: (i % 2 === 0 ? WHITE : STRIPE) });
+      page1.drawText(label, { x:detX+7, y:rowY-rowH+5, size:7.6, font:bold, color:NAVY800 });
+      let v = value;
+      const maxW = valueColW - 12;
+      while(widthOf(reg, v, 8) > maxW && v.length > 3){ v = v.slice(0, -1); }
+      if(v !== value) v = v.slice(0,-1) + '…';
+      page1.drawText(v, { x:detX+labelColW+7, y:rowY-rowH+5, size:8, font:reg, color:INK });
+      page1.drawLine({ start:{x:detX+labelColW,y:rowY}, end:{x:detX+labelColW,y:rowY-rowH}, color:LINE, thickness:0.6 });
+      page1.drawLine({ start:{x:detX,y:rowY-rowH}, end:{x:detX+detW,y:rowY-rowH}, color:LINE, thickness:0.6 });
+      rowY -= rowH;
+    });
+
+    page1.drawRectangle({ x:detX, y:rowY, width:detW, height:(tableTop-rowY), borderColor:NAVY800, borderWidth:1 });
+
+    const leftBottom = signY - 14;
+    const detBottom = rowY;
+    let sectionY = Math.min(leftBottom, detBottom) - 20;
+
+    page1.drawText('AADHAR CARD', { x:MARGIN, y:sectionY, size:10.5, font:bold, color:NAVY800 });
+    page1.drawRectangle({ x:MARGIN, y:sectionY-4, width:3, height:11, color:CYAN });
+    sectionY -= 16;
+
+    const gap = 12;
+    const boxW = (PAGE_W - MARGIN*2 - gap) / 2;
+    const boxH = boxW / 1.586;
+    const boxY = sectionY - boxH;
+
+    await drawCoverBox(doc, page1, getFile('fAadharFront'), MARGIN, boxY, boxW, boxH, 'FRONT SIDE', reg, MUTED, LINE, BG);
+    page1.drawText('FRONT SIDE', { x:MARGIN, y:boxY-11, size:6.5, font:bold, color:MUTED });
+
+    const rightX = MARGIN + boxW + gap;
+    await drawCoverBox(doc, page1, getFile('fAadharBack'), rightX, boxY, boxW, boxH, 'BACK SIDE', reg, MUTED, LINE, BG);
+    page1.drawText('BACK SIDE', { x:rightX, y:boxY-11, size:6.5, font:bold, color:MUTED });
+
+    const footNote = 'This is a system-generated report. Photo & Aadhar images are auto-fitted to a fixed frame.';
+    page1.drawText(footNote, { x:MARGIN, y:20, size:6.5, font:reg, color:MUTED });
+
+    // ---------------- Certificate pages (only if uploaded) ----------------
+    async function addCertPage(titleEn, fileId, dateId){
+      const file = getFile(fileId);
+      if(!file) return;
+      const page = doc.addPage([PAGE_W, PAGE_H]);
+      drawHeader(page, titleEn.toUpperCase(), val(dateId) ? ('Valid upto: ' + val(dateId)) : 'Validity date not provided');
+      const areaX = MARGIN, areaY = MARGIN, areaW = PAGE_W - MARGIN*2, areaH = PAGE_H - 92 - MARGIN;
+      page.drawRectangle({ x:areaX, y:areaY, width:areaW, height:areaH, borderColor:LINE, borderWidth:1 });
+      await drawContainBox(doc, page, file, areaX+4, areaY+4, areaW-8, areaH-8, reg, MUTED, LINE, BG, null);
+    }
+
+    await addCertPage('Police Verification Certificate', 'fPolice', 'dPolice');
+    await addCertPage('Medical Certificate', 'fMedical', 'dMedical');
+    await addCertPage('FSSAI License', 'fFssai', 'dFssai');
+
+    const bytes = await doc.save();
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
+  function resetFormAfterSubmit(){
+    form.reset();
+    unitInput.disabled = true;
+    unitInput.placeholder = 'Select station to search units';
+    unitList.innerHTML = '';
+    document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
+    document.querySelectorAll('[id^="fLabel"]').forEach(l => l.textContent = 'Tap to choose file');
+    updateIdNo();
+  }
+
+  btnConfirm.addEventListener('click', async function(){
+    btnConfirm.disabled = true;
+    btnConfirm.textContent = 'GENERATING…';
+
+    // Assign the ID number (increments local counter — real DB logic comes with backend)
     const station = stationSelect.value;
     let assignedId = idNo.value || '--';
     if(station){
@@ -773,50 +938,56 @@
       const next = count + 1;
       localStorage.setItem(storageKey(station), String(next));
       assignedId = station + String(next).padStart(3,'0');
+      idNo.value = assignedId;
     }
 
     closeModal();
-    showToast('Submitted \u2014 ID ' + assignedId + ' assigned (demo). Google Sheet sync pending.', false);
+    pdfOverlay.classList.add('show');
+    pdfLoading.style.display = 'flex';
+    pdfFrame.style.display = 'none';
 
-    form.reset();
-    unitInput.disabled = true;
-    unitInput.placeholder = 'Select station to search units';
-    unitList.innerHTML = '';
-    document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
-    document.querySelectorAll('[id^="fLabel"]').forEach(l => l.textContent = 'Tap to choose file');
-    updateBadge();
+    try{
+      const blob = await generatePdfReport();
+      if(currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+      currentPdfUrl = URL.createObjectURL(blob);
+      pdfFrame.src = currentPdfUrl;
+      btnDownload.href = currentPdfUrl;
+      btnDownload.download = 'vendor-details-' + assignedId + '.pdf';
+      pdfLoading.style.display = 'none';
+      pdfFrame.style.display = 'block';
+    } catch(err){
+      pdfLoading.innerHTML = '<span style="color:#f3b9b3;">Could not generate PDF report.<br>' + (err && err.message ? err.message : 'Unknown error') + '</span>';
+    }
+
+    btnConfirm.disabled = false;
+    btnConfirm.textContent = 'CONFIRM & SUBMIT';
   });
 
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    openModal();
+  btnPdfClose.addEventListener('click', function(){
+    pdfOverlay.classList.remove('show');
+    pdfFrame.src = 'about:blank';
+    showToast('Vendor details submitted (demo). Google Sheet sync pending.', false);
+    resetFormAfterSubmit();
   });
 
-  updateBadge();
+  updateIdNo();
 
   // ================= Auto-fit to single mobile screen =================
-  // Scales the whole form down (if needed) so it fits the visible area
-  // with no scrolling, regardless of device height.
   const fitStage = document.getElementById('fitStage');
-
   function fitToScreen(){
     fitStage.style.transform = 'none';
     const available = window.innerHeight;
     const natural = fitStage.scrollHeight;
     let scale = natural > 0 ? available / natural : 1;
     if (scale > 1) scale = 1;
-    if (scale < 0.55) scale = 0.55; // readability floor; falls back to scroll beyond this
+    if (scale < 0.5) scale = 0.5;
     fitStage.style.transform = 'scale(' + scale + ')';
-    document.body.style.overflowY = (scale <= 0.55 && natural * 0.55 > available) ? 'auto' : 'hidden';
+    document.body.style.overflowY = (scale <= 0.5 && natural * 0.5 > available) ? 'auto' : 'hidden';
   }
-
   window.addEventListener('load', fitToScreen);
   window.addEventListener('resize', fitToScreen);
   window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 200));
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(fitToScreen);
-  }
-  // Re-check shortly after load in case late font/layout shifts changed height
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitToScreen); }
   setTimeout(fitToScreen, 150);
   setTimeout(fitToScreen, 500);
   fitToScreen();

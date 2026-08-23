@@ -41,22 +41,27 @@
   .section-title{
     font-family:var(--font-display);
     font-size:10.5px;
-    font-weight:600;
-    color:var(--navy-800);
+    font-weight:700;
+    color:#fff;
     text-transform:uppercase;
     letter-spacing:0.5px;
-    margin:9px 0 5px;
+    margin:12px 0 7px;
+    padding:7px 10px;
+    border-radius:7px;
+    background:linear-gradient(135deg,var(--navy-800) 0%,var(--navy-700) 100%);
+    box-shadow:0 2px 6px rgba(11,37,69,0.25);
     display:flex;
     align-items:center;
     gap:6px;
   }
   .section-title::before{
     content:"";
-    width:3px;height:11px;
+    width:3px;height:12px;
     border-radius:2px;
-    background:var(--cyan-500);
+    background:var(--cyan-400);
     display:inline-block;
   }
+  .section-title .hi{color:var(--cyan-300);}
   .section-title:first-child{margin-top:2px;}
 
   .field{margin-bottom:6px;}
@@ -78,21 +83,22 @@
     padding:6px 8px;
     font-size:12px;
     font-family:var(--font-body);
-    color:var(--ink);
+    color:var(--navy-800);
     background:#fff;
-    border:1.5px solid var(--line);
+    border:1.5px solid var(--navy-700);
     border-radius:8px;
     outline:none;
     transition:border-color .15s ease, box-shadow .15s ease;
     -webkit-appearance:none;
     appearance:none;
+    text-transform:uppercase;
   }
   input:focus, select:focus{
     border-color:var(--cyan-500);
     box-shadow:0 0 0 3px rgba(6,182,212,0.15);
   }
   input:disabled{background:#eef4f9;color:var(--muted);}
-  input::placeholder{color:#a9bdd2;}
+  input::placeholder{color:#a9bdd2;text-transform:uppercase;}
 
   select{
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a4a86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -102,9 +108,9 @@
   }
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-  .hi{color:var(--muted);font-weight:500;text-transform:none;font-size:8.5px;}
-  .field label .hi{font-size:8.5px;}
-  .req{color:var(--danger);}
+  .hi{color:var(--muted);font-weight:700;text-transform:none;font-size:9.5px;}
+  .field label .hi{font-size:9.5px;}
+  .req{color:var(--danger);font-weight:700;}
 
   /* ---- upload rows ---- */
   .upload-card{
@@ -129,7 +135,7 @@
   .upload-grid.even{grid-template-columns:1fr 1fr;}
   .file-btn{
     position:relative;
-    border:1.5px dashed var(--line);
+    border:1.5px solid var(--navy-700);
     border-radius:7px;
     padding:5px 6px;
     text-align:center;
@@ -142,9 +148,29 @@
     position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
   }
   .file-btn.has-file{border-style:solid;border-color:var(--cyan-500);color:var(--navy-800);background:var(--cyan-100);}
-  .upload-grid label.mini{font-size:8px;color:var(--muted);font-weight:500;margin-bottom:2px;display:block;}
+  .upload-grid label.mini{font-size:8px;color:var(--muted);font-weight:500;margin-bottom:2px;display:block;text-transform:uppercase;}
   input[type="date"]{padding:5px 6px;font-size:10.5px;}
   .doc-row2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+
+  /* ---- date field: force DD/MM/YYYY display regardless of device locale ---- */
+  .date-field{position:relative;}
+  .date-field input[type="date"]{color:transparent;}
+  .date-field input[type="date"]::-webkit-datetime-edit,
+  .date-field input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  .date-field input[type="date"]::-webkit-datetime-edit-text,
+  .date-field input[type="date"]::-webkit-datetime-edit-month-field,
+  .date-field input[type="date"]::-webkit-datetime-edit-day-field,
+  .date-field input[type="date"]::-webkit-datetime-edit-year-field{color:transparent;}
+  .date-display{
+    position:absolute;left:8px;top:50%;
+    transform:translateY(-50%);
+    font-size:10.5px;
+    font-family:var(--font-body);
+    color:#a9bdd2;
+    pointer-events:none;
+    text-transform:none;
+  }
+  .date-display.filled{color:var(--navy-800);font-weight:600;}
 
   /* ---- submit ---- */
   .submit-btn{
@@ -274,43 +300,43 @@
 
     <div class="field">
       <label for="name">NAME <span class="hi">/ नाम</span> <span class="req">*</span></label>
-      <input type="text" id="name" name="name" placeholder="Enter full name" required autocomplete="off">
+      <input type="text" id="name" name="name" placeholder="ENTER FULL NAME" required autocomplete="off">
     </div>
 
     <div class="row2">
       <div class="field">
         <label for="station">STATION <span class="hi">/ स्टेशन</span> <span class="req">*</span></label>
         <select id="station" name="station" required>
-          <option value="" disabled selected>Select station</option>
+          <option value="" disabled selected>SELECT STATION</option>
         </select>
       </div>
       <div class="field">
         <label for="designation">DESIGNATION <span class="hi">/ पदनाम</span> <span class="req">*</span></label>
         <select id="designation" name="designation" required>
-          <option value="" disabled selected>Select</option>
-          <option value="Vendor">Vendor</option>
-          <option value="Manager">Manager</option>
-          <option value="Cook">Cook</option>
-          <option value="Helper">Helper</option>
+          <option value="" disabled selected>SELECT</option>
+          <option value="Vendor">VENDOR</option>
+          <option value="Manager">MANAGER</option>
+          <option value="Cook">COOK</option>
+          <option value="Helper">HELPER</option>
         </select>
       </div>
     </div>
 
     <div class="field">
-      <label for="unitName">NAME OF UNIT <span class="hi">/ यूनिट का नाम</span> <span class="req">*</span> <span class="hint">(select station first)</span></label>
-      <input list="unitOptions" id="unitName" name="unitName" placeholder="Select station to search units" autocomplete="off" disabled>
+      <label for="unitName">NAME OF UNIT <span class="hi">/ यूनिट का नाम</span> <span class="req">*</span></label>
+      <input list="unitOptions" id="unitName" name="unitName" placeholder="SELECT STATION TO SEARCH UNITS" autocomplete="off" disabled>
       <datalist id="unitOptions"></datalist>
     </div>
 
     <div class="row2">
       <div class="field">
         <label for="mobile">MOBILE NO. <span class="hi">/ मोबाइल नंबर</span> <span class="req">*</span></label>
-        <input type="tel" id="mobile" name="mobile" placeholder="10-digit number" maxlength="10" inputmode="numeric" required>
+        <input type="tel" id="mobile" name="mobile" placeholder="10-DIGIT NUMBER" maxlength="10" inputmode="numeric" required>
       </div>
       <div class="field">
         <label for="bloodGroup">BLOOD GROUP <span class="hi">/ रक्त समूह</span> <span class="req">*</span></label>
         <select id="bloodGroup" name="bloodGroup" required>
-          <option value="" disabled selected>Select</option>
+          <option value="" disabled selected>SELECT</option>
           <option>A+</option><option>A-</option>
           <option>B+</option><option>B-</option>
           <option>AB+</option><option>AB-</option>
@@ -322,11 +348,11 @@
     <div class="row2">
       <div class="field">
         <label for="aadhar">AADHAR CARD NO. <span class="hi">/ आधार कार्ड नंबर</span> <span class="req">*</span></label>
-        <input type="text" id="aadhar" name="aadhar" placeholder="12-digit number" maxlength="12" inputmode="numeric" required>
+        <input type="text" id="aadhar" name="aadhar" placeholder="12-DIGIT NUMBER" maxlength="12" inputmode="numeric" required>
       </div>
       <div class="field">
-        <label for="idNo">ID NO. <span class="hi">/ आईडी नंबर</span> <span class="hint">(auto)</span></label>
-        <input type="text" id="idNo" name="idNo" placeholder="Auto-generated" disabled>
+        <label for="idNo">ID NO. <span class="hi">/ आईडी नंबर</span> <span class="hint">(AUTO)</span></label>
+        <input type="text" id="idNo" name="idNo" placeholder="AUTO-GENERATED" disabled>
       </div>
     </div>
 
@@ -336,22 +362,22 @@
       <div class="upload-card">
         <div class="doc-title">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          PASSPORT PHOTO <span class="hi">/ फोटो</span>
+          PASSPORT PHOTO <span class="hi">/ फोटो</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnPhoto">
-          <input type="file" id="fPhoto" name="fPhoto" accept="image/*">
-          <span id="fLabelPhoto">Tap to choose file</span>
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg">
+          <span id="fLabelPhoto">TAP TO CHOOSE / UPLOAD</span>
         </div>
       </div>
 
       <div class="upload-card">
         <div class="doc-title">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/><path d="M14.06 6.19l3.75 3.75 2.12-2.12a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0z"/></svg>
-          SIGNATURE <span class="hi">/ हस्ताक्षर</span>
+          SIGNATURE <span class="hi">/ हस्ताक्षर</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnSign">
-          <input type="file" id="fSignature" name="fSignature" accept="image/*">
-          <span id="fLabelSign">Tap to choose file</span>
+          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg">
+          <span id="fLabelSign">TAP TO CHOOSE / UPLOAD</span>
         </div>
       </div>
     </div>
@@ -359,21 +385,21 @@
     <div class="upload-card">
       <div class="doc-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M13 10h6M13 14h4"/></svg>
-        AADHAR CARD <span class="hi">/ आधार कार्ड</span>
+        AADHAR CARD <span class="hi">/ आधार कार्ड</span> <span class="req">*</span>
       </div>
       <div class="upload-grid even">
         <div>
           <label class="mini">FRONT SIDE <span class="hi">/ आगे</span></label>
           <div class="file-btn" id="fileBtnAF">
             <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*,.pdf">
-            <span id="fLabelAF">Tap to choose file</span>
+            <span id="fLabelAF">TAP TO CHOOSE / UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">BACK SIDE <span class="hi">/ पीछे</span></label>
           <div class="file-btn" id="fileBtnAB">
             <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*,.pdf">
-            <span id="fLabelAB">Tap to choose file</span>
+            <span id="fLabelAB">TAP TO CHOOSE / UPLOAD</span>
           </div>
         </div>
       </div>
@@ -384,19 +410,22 @@
     <div class="upload-card">
       <div class="doc-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-        POLICE VERIFICATION CERTIFICATE <span class="hi">/ पुलिस सत्यापन प्रमाणपत्र</span>
+        POLICE VERIFICATION CERTIFICATE <span class="hi">/ पुलिस सत्यापन प्रमाणपत्र</span> <span class="req">*</span>
       </div>
       <div class="upload-grid">
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn1">
             <input type="file" id="fPolice" name="fPolice" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel1">Tap to choose file</span>
+            <span id="fLabel1">TAP TO CHOOSE / UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
-          <input type="date" id="dPolice" name="dPolice">
+          <div class="date-field">
+            <input type="date" id="dPolice" name="dPolice">
+            <span class="date-display" id="dPoliceDisplay">DD/MM/YYYY</span>
+          </div>
         </div>
       </div>
     </div>
@@ -404,19 +433,22 @@
     <div class="upload-card">
       <div class="doc-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-        MEDICAL CERTIFICATE <span class="hi">/ मेडिकल प्रमाणपत्र</span>
+        MEDICAL CERTIFICATE <span class="hi">/ मेडिकल प्रमाणपत्र</span> <span class="req">*</span>
       </div>
       <div class="upload-grid">
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn2">
             <input type="file" id="fMedical" name="fMedical" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel2">Tap to choose file</span>
+            <span id="fLabel2">TAP TO CHOOSE / UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
-          <input type="date" id="dMedical" name="dMedical">
+          <div class="date-field">
+            <input type="date" id="dMedical" name="dMedical">
+            <span class="date-display" id="dMedicalDisplay">DD/MM/YYYY</span>
+          </div>
         </div>
       </div>
     </div>
@@ -431,18 +463,20 @@
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn3">
             <input type="file" id="fFssai" name="fFssai" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel3">Tap to choose file</span>
+            <span id="fLabel3">TAP TO CHOOSE / UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
-          <input type="date" id="dFssai" name="dFssai">
+          <div class="date-field">
+            <input type="date" id="dFssai" name="dFssai">
+            <span class="date-display" id="dFssaiDisplay">DD/MM/YYYY</span>
+          </div>
         </div>
       </div>
     </div>
 
     <button type="submit" class="submit-btn">SUBMIT VENDOR DETAILS <span class="hi" style="color:rgba(11,37,69,0.65)">/ विवरण सबमिट करें</span></button>
-    <p class="note">On confirm, a PDF report will be generated and shown on screen.<br>(Saving to the Google Sheet database will be integrated next.)</p>
 
   </form>
 </div>
@@ -476,7 +510,7 @@
   </div>
   <div class="pdf-loading" id="pdfLoading">
     <div class="spinner"></div>
-    <span>Generating PDF report&hellip; / रिपोर्ट तैयार हो रही है&hellip;</span>
+    <span>GENERATING PDF REPORT&hellip; / रिपोर्ट तैयार हो रही है&hellip;</span>
   </div>
   <iframe id="pdfFrame" style="display:none;" title="Vendor details PDF report"></iframe>
 </div>
@@ -539,14 +573,40 @@
     });
     unitInput.disabled = false;
     unitInput.value = '';
-    unitInput.placeholder = units.length ? 'Search or select unit' : 'No units found — type unit name';
+    unitInput.placeholder = units.length ? 'SEARCH OR SELECT UNIT' : 'NO UNITS FOUND — TYPE UNIT NAME';
     updateIdNo();
   });
 
+  // Passport Photo & Signature: single upload button, JPG-only.
+  function isJpg(file){
+    return file && (file.type === 'image/jpeg' || /\.(jpe?g)$/i.test(file.name || ''));
+  }
+  function setupJpgOnlyInput(inputId, labelId, cardId){
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    const card = document.getElementById(cardId);
+    input.addEventListener('change', () => {
+      if(input.files && input.files.length){
+        if(!isJpg(input.files[0])){
+          showToast('Only JPG photos are allowed / केवल JPG फोटो मान्य है', true);
+          input.value = '';
+          label.textContent = 'TAP TO CHOOSE / UPLOAD';
+          card.classList.remove('has-file');
+          return;
+        }
+        label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
+        card.classList.add('has-file');
+      } else {
+        label.textContent = 'TAP TO CHOOSE / UPLOAD';
+        card.classList.remove('has-file');
+      }
+    });
+  }
+  setupJpgOnlyInput('fPhoto','fLabelPhoto','fileBtnPhoto');
+  setupJpgOnlyInput('fSignature','fLabelSign','fileBtnSign');
+
   // File input labels
   [
-    ['fPhoto','fLabelPhoto','fileBtnPhoto'],
-    ['fSignature','fLabelSign','fileBtnSign'],
     ['fAadharFront','fLabelAF','fileBtnAF'],
     ['fAadharBack','fLabelAB','fileBtnAB'],
     ['fPolice','fLabel1','fileBtn1'],
@@ -561,7 +621,7 @@
         label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
         card.classList.add('has-file');
       } else {
-        label.textContent = 'Tap to choose file';
+        label.textContent = 'TAP TO CHOOSE / UPLOAD';
         card.classList.remove('has-file');
       }
     });
@@ -569,8 +629,26 @@
 
   // Prevent past dates on all "Valid upto" date pickers
   const today = new Date().toISOString().split('T')[0];
+
+  // Always show DD/MM/YYYY, regardless of device/browser locale.
+  function updateDateDisplay(id){
+    const input = document.getElementById(id);
+    const disp = document.getElementById(id + 'Display');
+    if(input.value){
+      const parts = input.value.split('-');
+      disp.textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
+      disp.classList.add('filled');
+    } else {
+      disp.textContent = 'DD/MM/YYYY';
+      disp.classList.remove('filled');
+    }
+  }
+
   ['dPolice','dMedical','dFssai'].forEach(id => {
-    document.getElementById(id).setAttribute('min', today);
+    const input = document.getElementById(id);
+    input.setAttribute('min', today);
+    input.addEventListener('change', () => updateDateDisplay(id));
+    updateDateDisplay(id);
   });
 
   // Toast helper
@@ -588,8 +666,14 @@
   const form = document.getElementById('vendorForm');
   const btnConfirm = document.getElementById('btnConfirm');
 
-  function val(id){ return document.getElementById(id).value.trim(); }
+  function val(id){ return document.getElementById(id).value.trim().toUpperCase(); }
   function getFile(id){ const f = document.getElementById(id).files; return (f && f.length) ? f[0] : null; }
+  function formatDateDMY(iso){
+    if(!iso) return '';
+    const p = iso.split('-');
+    if(p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
 
   function rvRow(labelEn, labelHi, value, isMissing){
     return '<div class="rv-row">' +
@@ -610,9 +694,9 @@
   function rvDocRow(labelEn, labelHi, fileId, dateId){
     const uploaded = !!getFile(fileId);
     const name = uploaded ? getFile(fileId).name : '';
-    const date = val(dateId);
+    const date = formatDateDMY(val(dateId));
     let fileHtml = uploaded ? '<span>' + name + '</span>' : '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
-    let dateHtml = date ? '<span class="doc-date">Valid upto: ' + date + '</span>' : '<span class="doc-date missing">DATE NOT SET / तिथि नहीं</span>';
+    let dateHtml = date ? '<span class="doc-date">VALID UPTO: ' + date + '</span>' : '<span class="doc-date missing">DATE NOT SET / तिथि नहीं</span>';
     return '<div class="rv-row">' +
       '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
       '<div class="rv-value">' + fileHtml + dateHtml + '</div>' +
@@ -653,7 +737,7 @@
     if(missingCount > 0){
       html += '<div class="rv-warning">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0z"/></svg>' +
-        '<span>Some fields highlighted above are incomplete. You may still confirm and submit, or go back and edit.' +
+        '<span>SOME FIELDS HIGHLIGHTED ABOVE ARE INCOMPLETE. YOU MAY STILL CONFIRM AND SUBMIT, OR GO BACK AND EDIT.' +
         '<br><span style="opacity:0.85">ऊपर हाइलाइट किए गए कुछ फ़ील्ड अधूरे हैं। आप फिर भी सबमिट कर सकते हैं, या पीछे जाकर संपादित कर सकते हैं।</span></span>' +
       '</div>';
     }
@@ -775,7 +859,7 @@
         page.drawImage(embedded, { x:dx, y:dy, width:dw, height:dh });
       }
     } catch(err){
-      page.drawText('Unable to preview attached file.', { x: x+10, y: y+h/2, size:10, font, color: PDFLib.rgb(0.7,0.2,0.2) });
+      page.drawText('UNABLE TO PREVIEW ATTACHED FILE.', { x: x+10, y: y+h/2, size:10, font, color: PDFLib.rgb(0.7,0.2,0.2) });
     }
   }
 
@@ -846,7 +930,7 @@
 
     // ---------------- PAGE 1: Details + Photo + Signature + Aadhar ----------------
     const page1 = doc.addPage([PAGE_W, PAGE_H]);
-    drawHeader(page1, 'VENDOR DETAILS REPORT', 'वेंडर विवरण रिपोर्ट', 'Generated: ' + genDateStr);
+    drawHeader(page1, 'VENDOR DETAILS REPORT', 'वेंडर विवरण रिपोर्ट', 'GENERATED: ' + genDateStr);
 
     const contentTop = PAGE_H - 92;
     const PHOTO_W = 100, PHOTO_H = 128;
@@ -930,7 +1014,7 @@
     await drawCoverBox(doc, page1, getFile('fAadharBack'), rightX, boxY, boxW, boxH, 'BACK SIDE', reg, MUTED, LINE, BG);
     drawBilingual(page1, rightX, boxY-11, 'BACK SIDE', 'पीछे', 6.5, bold, MUTED, 6.5);
 
-    const footNote = 'This is a system-generated report. Photo & Aadhar images are auto-fitted to a fixed frame.';
+    const footNote = 'THIS IS A SYSTEM-GENERATED REPORT. PHOTO & AADHAR IMAGES ARE AUTO-FITTED TO A FIXED FRAME.';
     page1.drawText(footNote, { x:MARGIN, y:20, size:6.5, font:reg, color:MUTED });
 
     // ---------------- Certificate pages (only if uploaded) ----------------
@@ -938,7 +1022,7 @@
       const file = getFile(fileId);
       if(!file) return;
       const page = doc.addPage([PAGE_W, PAGE_H]);
-      drawHeader(page, titleEn.toUpperCase(), titleHi, val(dateId) ? ('Valid upto: ' + val(dateId)) : 'Validity date not provided');
+      drawHeader(page, titleEn.toUpperCase(), titleHi, val(dateId) ? ('Valid upto: ' + formatDateDMY(val(dateId))).toUpperCase() : 'VALIDITY DATE NOT PROVIDED');
       const areaX = MARGIN, areaY = MARGIN, areaW = PAGE_W - MARGIN*2, areaH = PAGE_H - 92 - MARGIN;
       page.drawRectangle({ x:areaX, y:areaY, width:areaW, height:areaH, borderColor:LINE, borderWidth:1 });
       await drawContainBox(doc, page, file, areaX+4, areaY+4, areaW-8, areaH-8, reg, MUTED, LINE, BG, null);
@@ -955,10 +1039,11 @@
   function resetFormAfterSubmit(){
     form.reset();
     unitInput.disabled = true;
-    unitInput.placeholder = 'Select station to search units';
+    unitInput.placeholder = 'SELECT STATION TO SEARCH UNITS';
     unitList.innerHTML = '';
     document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
-    document.querySelectorAll('[id^="fLabel"]').forEach(l => l.textContent = 'Tap to choose file');
+    document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO CHOOSE / UPLOAD'; });
+    ['dPolice','dMedical','dFssai'].forEach(id => updateDateDisplay(id));
     updateIdNo();
   }
 
@@ -992,7 +1077,7 @@
       pdfLoading.style.display = 'none';
       pdfFrame.style.display = 'block';
     } catch(err){
-      pdfLoading.innerHTML = '<span style="color:#f3b9b3;">Could not generate PDF report.<br>' + (err && err.message ? err.message : 'Unknown error') + '</span>';
+      pdfLoading.innerHTML = '<span style="color:#f3b9b3;">COULD NOT GENERATE PDF REPORT.<br>' + (err && err.message ? err.message : 'Unknown error') + '</span>';
     }
 
     btnConfirm.disabled = false;
@@ -1002,7 +1087,7 @@
   btnPdfClose.addEventListener('click', function(){
     pdfOverlay.classList.remove('show');
     pdfFrame.src = 'about:blank';
-    showToast('Vendor details submitted (demo). Google Sheet sync pending.', false);
+    showToast('VENDOR DETAILS SUBMITTED (DEMO). GOOGLE SHEET SYNC PENDING.', false);
     resetFormAfterSubmit();
   });
 

@@ -365,7 +365,7 @@
           PASSPORT PHOTO <span class="hi">/ फोटो</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnPhoto">
-          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg" capture="environment">
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg">
           <span id="fLabelPhoto">TAP TO UPLOAD</span>
         </div>
       </div>
@@ -376,7 +376,7 @@
           SIGNATURE <span class="hi">/ हस्ताक्षर</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnSign">
-          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg" capture="environment">
+          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg">
           <span id="fLabelSign">TAP TO UPLOAD</span>
         </div>
       </div>
@@ -391,14 +391,14 @@
         <div>
           <label class="mini">FRONT SIDE <span class="hi">/ आगे</span></label>
           <div class="file-btn" id="fileBtnAF">
-            <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*" capture="environment">
+            <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*,.pdf">
             <span id="fLabelAF">TAP TO UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">BACK SIDE <span class="hi">/ पीछे</span></label>
           <div class="file-btn" id="fileBtnAB">
-            <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*" capture="environment">
+            <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*,.pdf">
             <span id="fLabelAB">TAP TO UPLOAD</span>
           </div>
         </div>
@@ -416,7 +416,7 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn1">
-            <input type="file" id="fPolice" name="fPolice" accept="image/*" capture="environment">
+            <input type="file" id="fPolice" name="fPolice" accept="image/*,.pdf">
             <span id="fLabel1">TAP TO UPLOAD</span>
           </div>
         </div>
@@ -439,7 +439,7 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn2">
-            <input type="file" id="fMedical" name="fMedical" accept="image/*" capture="environment">
+            <input type="file" id="fMedical" name="fMedical" accept="image/*,.pdf">
             <span id="fLabel2">TAP TO UPLOAD</span>
           </div>
         </div>
@@ -462,7 +462,7 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn3">
-            <input type="file" id="fFssai" name="fFssai" accept="image/*" capture="environment">
+            <input type="file" id="fFssai" name="fFssai" accept="image/*,.pdf">
             <span id="fLabel3">TAP TO UPLOAD</span>
           </div>
         </div>
@@ -496,6 +496,18 @@
   </div>
 </div>
 
+<!-- ================= Duplicate Aadhar Popup ================= -->
+<div id="dupOverlay" style="display:none;position:fixed;inset:0;background:rgba(6,20,40,0.55);backdrop-filter:blur(2px);align-items:center;justify-content:center;z-index:150;">
+  <div style="width:86%;max-width:400px;background:#fff;border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+    <h3 style="font-family:var(--font-display);font-size:14.5px;margin:0 0 8px;color:var(--navy-800);">AADHAR CARD NO. ALREADY EXISTS</h3>
+    <p style="font-size:11.5px;color:var(--muted);margin:0 0 16px;line-height:1.55;">यह आधार नंबर पहले से मौजूद है।<br>क्या आप मौजूदा विवरण लोड करके संपादित करना चाहते हैं?<br><span style="font-size:10.5px;">(Load existing details to edit &amp; update)</span></p>
+    <div style="display:flex;gap:10px;">
+      <button type="button" id="dupCancelBtn" style="flex:1;padding:11px 6px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--navy-800);font-family:var(--font-display);font-weight:600;font-size:12px;cursor:pointer;">CANCEL</button>
+      <button type="button" id="dupLoadBtn" style="flex:1;padding:11px 6px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);font-family:var(--font-display);font-weight:600;font-size:12px;cursor:pointer;">LOAD &amp; EDIT</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================= PDF Preview Overlay ================= -->
 <div id="pdfOverlay">
   <div class="pdf-head">
@@ -518,6 +530,12 @@
 <div id="toast"></div>
 
 <script>
+  // ================= Backend (Google Sheet + Drive) config =================
+  // Paste the deployed Google Apps Script Web App URL here (see apps-script-backend.gs
+  // for the code to deploy). Until this is set, data will only be generated/downloaded
+  // locally and will NOT be saved to Google Sheet / Drive.
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN59TMwl1JT58yQn1pPexSLO2rJscqITjUA-wFkwVVaEsYTyDDsgcM7hwZuGvDvSu5hQ/exec';
+
   const STATIONS = ["OKHA","MTHP","DWK","BHTA","KMBL","JAM","HAPA","RJT","BKNG","MVI","WKR","SUNR","PDH"];
 
   // Placeholder unit data per station — will be replaced by live Google Sheet data via backend.
@@ -548,6 +566,85 @@
   const unitList = document.getElementById('unitOptions');
   const idNo = document.getElementById('idNo');
   const designationSelect = document.getElementById('designation');
+
+  // ================= Duplicate Aadhar / Edit-existing-record state =================
+  let isEditMode = false;
+  let editingAadhar = '';
+  let existingRecord = null;
+  let pendingRecordCheck = null;
+  const dupOverlay = document.getElementById('dupOverlay');
+  const dupLoadBtn = document.getElementById('dupLoadBtn');
+  const dupCancelBtn = document.getElementById('dupCancelBtn');
+
+  async function checkAadharExists(aadharNum){
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return { exists:false };
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?aadhar=' + encodeURIComponent(aadharNum));
+      return await res.json();
+    } catch(err){
+      return { exists:false, error: err.message };
+    }
+  }
+
+  function existingDocUrl(field){
+    return (isEditMode && existingRecord && existingRecord.documents) ? existingRecord.documents[field] : null;
+  }
+
+  const DOC_FIELD_MAP = {
+    fPhoto:'photo', fSignature:'signature', fAadharFront:'aadharFront', fAadharBack:'aadharBack',
+    fPolice:'policeCertificate', fMedical:'medicalCertificate', fFssai:'fssaiLicense'
+  };
+  const DOC_LABEL_MAP = { fPhoto:'fLabelPhoto', fSignature:'fLabelSign', fAadharFront:'fLabelAF', fAadharBack:'fLabelAB', fPolice:'fLabel1', fMedical:'fLabel2', fFssai:'fLabel3' };
+  const DOC_CARD_MAP  = { fPhoto:'fileBtnPhoto', fSignature:'fileBtnSign', fAadharFront:'fileBtnAF', fAadharBack:'fileBtnAB', fPolice:'fileBtn1', fMedical:'fileBtn2', fFssai:'fileBtn3' };
+
+  function loadExistingRecordIntoForm(record){
+    document.getElementById('name').value = record.name || '';
+    if(record.station){
+      stationSelect.value = record.station;
+      stationSelect.dispatchEvent(new Event('change'));
+    }
+    document.getElementById('unitName').value = record.unitName || '';
+    document.getElementById('designation').value = record.designation || '';
+    document.getElementById('mobile').value = record.mobile || '';
+    document.getElementById('bloodGroup').value = record.bloodGroup || '';
+    document.getElementById('aadhar').value = record.aadhar || '';
+    idNo.value = record.idNo || '';
+    document.getElementById('dPolice').value = record.policeValidUpto || '';
+    document.getElementById('dMedical').value = record.medicalValidUpto || '';
+    document.getElementById('dFssai').value = record.fssaiValidUpto || '';
+    ['dPolice','dMedical','dFssai'].forEach(id => updateDateDisplay(id));
+
+    isEditMode = true;
+    editingAadhar = record.aadhar || '';
+    existingRecord = record;
+
+    Object.keys(DOC_FIELD_MAP).forEach(inputId => {
+      const field = DOC_FIELD_MAP[inputId];
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(DOC_LABEL_MAP[inputId]);
+      const card = document.getElementById(DOC_CARD_MAP[inputId]);
+      input.value = '';
+      if(existingDocUrl(field)){
+        label.textContent = 'ON FILE — TAP TO REPLACE';
+        card.classList.add('has-file');
+      } else {
+        label.textContent = 'TAP TO UPLOAD';
+        card.classList.remove('has-file');
+      }
+    });
+
+    showToast('EXISTING DETAILS LOADED — EDIT & SUBMIT TO UPDATE / मौजूदा विवरण लोड हो गया', false);
+  }
+
+  dupLoadBtn.addEventListener('click', () => {
+    dupOverlay.style.display = 'none';
+    if(pendingRecordCheck) loadExistingRecordIntoForm(pendingRecordCheck);
+    pendingRecordCheck = null;
+  });
+  dupCancelBtn.addEventListener('click', () => {
+    dupOverlay.style.display = 'none';
+    pendingRecordCheck = null;
+  });
 
   function storageKey(station){ return 'vendorCounter_' + station; }
 
@@ -644,10 +741,24 @@
     }
   }
 
+  function isPastDate(id){
+    const v = document.getElementById(id).value;
+    return !!v && v < today;
+  }
+  function hasInvalidPastDate(){
+    return ['dPolice','dMedical','dFssai'].some(isPastDate);
+  }
+
   ['dPolice','dMedical','dFssai'].forEach(id => {
     const input = document.getElementById(id);
     input.setAttribute('min', today);
-    input.addEventListener('change', () => updateDateDisplay(id));
+    input.addEventListener('change', () => {
+      if(isPastDate(id)){
+        showToast('VALIDITY DATE CANNOT BE BEFORE TODAY / मान्य तिथि आज से पहले नहीं हो सकती', true);
+        input.value = '';
+      }
+      updateDateDisplay(id);
+    });
     updateDateDisplay(id);
   });
 
@@ -682,20 +793,34 @@
     '</div>';
   }
 
-  function rvFileRow(labelEn, labelHi, fileId){
+  function rvFileRow(labelEn, labelHi, fileId, existingUrl){
     const uploaded = !!getFile(fileId);
-    const inner = uploaded ? getFile(fileId).name : '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    let inner;
+    if(uploaded){
+      inner = getFile(fileId).name;
+    } else if(existingUrl){
+      inner = '<span style="color:var(--muted);">ON FILE (UNCHANGED) / मौजूदा दस्तावेज़</span>';
+    } else {
+      inner = '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    }
     return '<div class="rv-row">' +
       '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
       '<div class="rv-value">' + inner + '</div>' +
     '</div>';
   }
 
-  function rvDocRow(labelEn, labelHi, fileId, dateId){
+  function rvDocRow(labelEn, labelHi, fileId, dateId, existingUrl){
     const uploaded = !!getFile(fileId);
     const name = uploaded ? getFile(fileId).name : '';
     const date = formatDateDMY(val(dateId));
-    let fileHtml = uploaded ? '<span>' + name + '</span>' : '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    let fileHtml;
+    if(uploaded){
+      fileHtml = '<span>' + name + '</span>';
+    } else if(existingUrl){
+      fileHtml = '<span style="color:var(--muted);">ON FILE (UNCHANGED) / मौजूदा दस्तावेज़</span>';
+    } else {
+      fileHtml = '<span class="missing">NOT UPLOADED / अपलोड नहीं</span>';
+    }
     let dateHtml = date ? '<span class="doc-date">VALID UPTO: ' + date + '</span>' : '<span class="doc-date missing">DATE NOT SET / तिथि नहीं</span>';
     return '<div class="rv-row">' +
       '<div class="rv-label">' + labelEn + '<span class="hi">/ ' + labelHi + '</span></div>' +
@@ -719,20 +844,20 @@
     html += rvRow('ID NO.','आईडी नंबर', val('idNo') || previewNextId(stationSelect.value) || '--', false);
 
     html += '<div class="rv-group-title">IDENTITY DOCUMENTS / पहचान दस्तावेज़</div>';
-    html += rvFileRow('PASSPORT PHOTO','फोटो','fPhoto');
-    html += rvFileRow('SIGNATURE','हस्ताक्षर','fSignature');
-    html += rvFileRow('AADHAR — FRONT SIDE','आधार आगे','fAadharFront');
-    html += rvFileRow('AADHAR — BACK SIDE','आधार पीछे','fAadharBack');
+    html += rvFileRow('PASSPORT PHOTO','फोटो','fPhoto', existingDocUrl('photo'));
+    html += rvFileRow('SIGNATURE','हस्ताक्षर','fSignature', existingDocUrl('signature'));
+    html += rvFileRow('AADHAR — FRONT SIDE','आधार आगे','fAadharFront', existingDocUrl('aadharFront'));
+    html += rvFileRow('AADHAR — BACK SIDE','आधार पीछे','fAadharBack', existingDocUrl('aadharBack'));
 
     html += '<div class="rv-group-title">CERTIFICATE UPLOAD / प्रमाणपत्र अपलोड</div>';
-    html += rvDocRow('POLICE VERIFICATION CERTIFICATE','पुलिस सत्यापन प्रमाणपत्र','fPolice','dPolice');
-    html += rvDocRow('MEDICAL CERTIFICATE','मेडिकल प्रमाणपत्र','fMedical','dMedical');
-    html += rvDocRow('FSSAI LICENSE','एफएसएसएआई लाइसेंस','fFssai','dFssai');
+    html += rvDocRow('POLICE VERIFICATION CERTIFICATE','पुलिस सत्यापन प्रमाणपत्र','fPolice','dPolice', existingDocUrl('policeCertificate'));
+    html += rvDocRow('MEDICAL CERTIFICATE','मेडिकल प्रमाणपत्र','fMedical','dMedical', existingDocUrl('medicalCertificate'));
+    html += rvDocRow('FSSAI LICENSE','एफएसएसएआई लाइसेंस','fFssai','dFssai', existingDocUrl('fssaiLicense'));
 
-    ['fPhoto','fSignature','fAadharFront','fAadharBack'].forEach(id => { if(!getFile(id)) missingCount++; });
-    if(!getFile('fPolice') || !val('dPolice')) missingCount++;
-    if(!getFile('fMedical') || !val('dMedical')) missingCount++;
-    if(!getFile('fFssai') || !val('dFssai')) missingCount++;
+    ['fPhoto','fSignature','fAadharFront','fAadharBack'].forEach(id => { if(!getFile(id) && !existingDocUrl(DOC_FIELD_MAP[id])) missingCount++; });
+    if((!getFile('fPolice') && !existingDocUrl('policeCertificate')) || !val('dPolice')) missingCount++;
+    if((!getFile('fMedical') && !existingDocUrl('medicalCertificate')) || !val('dMedical')) missingCount++;
+    if((!getFile('fFssai') && !existingDocUrl('fssaiLicense')) || !val('dFssai')) missingCount++;
 
     if(missingCount > 0){
       html += '<div class="rv-warning">' +
@@ -750,10 +875,106 @@
   document.getElementById('btnEdit').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
 
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', async function(e){
     e.preventDefault();
+    if(hasInvalidPastDate()){
+      showToast('VALIDITY DATE CANNOT BE BEFORE TODAY / मान्य तिथि आज से पहले नहीं हो सकती', true);
+      return;
+    }
+    const aadharVal = val('aadhar');
+    if(!aadharVal){
+      showToast('PLEASE ENTER AADHAR CARD NO. / आधार कार्ड नंबर दर्ज करें', true);
+      return;
+    }
+
+    // Only re-check when the Aadhar number is new / different from the record we're already editing.
+    if(aadharVal !== editingAadhar){
+      const check = await checkAadharExists(aadharVal);
+      if(check && check.exists && check.record){
+        pendingRecordCheck = check.record;
+        dupOverlay.style.display = 'flex';
+        return;
+      }
+      isEditMode = false;
+      editingAadhar = '';
+      existingRecord = null;
+    }
+
     openModal();
   });
+
+  // ================= Backend upload (Google Sheet + Drive via Apps Script) =================
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function blobToBase64(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function buildUploadPayload(assignedId, pdfBlob){
+    const fileFields = [
+      ['fPhoto','photo'],
+      ['fSignature','signature'],
+      ['fAadharFront','aadharFront'],
+      ['fAadharBack','aadharBack'],
+      ['fPolice','policeCertificate'],
+      ['fMedical','medicalCertificate'],
+      ['fFssai','fssaiLicense']
+    ];
+    const files = [];
+    for(const [inputId, field] of fileFields){
+      const file = getFile(inputId);
+      if(file){
+        const base64 = await fileToBase64(file);
+        files.push({ field: field, filename: file.name, mimeType: file.type || 'application/octet-stream', base64: base64 });
+      }
+    }
+
+    const pdfBase64 = await blobToBase64(pdfBlob);
+
+    const formData = {
+      name: val('name'),
+      station: val('station'),
+      designation: val('designation'),
+      unitName: val('unitName'),
+      mobile: val('mobile'),
+      bloodGroup: val('bloodGroup'),
+      idNo: assignedId,
+      policeValidUpto: val('dPolice'),
+      medicalValidUpto: val('dMedical'),
+      fssaiValidUpto: val('dFssai')
+    };
+
+    return {
+      aadhar: val('aadhar'),
+      formData: formData,
+      files: files,
+      pdf: { filename: 'vendor-details-' + assignedId + '.pdf', base64: pdfBase64 }
+    };
+  }
+
+  async function submitToBackend(assignedId, pdfBlob){
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1){
+      return { success:false, error:'Backend URL not configured yet.' };
+    }
+    const payload = await buildUploadPayload(assignedId, pdfBlob);
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
 
   // ================= PDF report generation (pdf-lib) =================
   const pdfOverlay = document.getElementById('pdfOverlay');
@@ -1044,6 +1265,9 @@
     document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
     document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO UPLOAD'; });
     ['dPolice','dMedical','dFssai'].forEach(id => updateDateDisplay(id));
+    isEditMode = false;
+    editingAadhar = '';
+    existingRecord = null;
     updateIdNo();
   }
 
@@ -1051,10 +1275,14 @@
     btnConfirm.disabled = true;
     btnConfirm.textContent = 'GENERATING…';
 
-    // Assign the ID number (increments local counter — real DB logic comes with backend)
+    // Assign the ID number — reuse the existing ID when updating a record, otherwise mint a new one.
     const station = stationSelect.value;
     let assignedId = idNo.value || '--';
-    if(station){
+    const updatingExisting = isEditMode && val('aadhar') === editingAadhar && existingRecord;
+    if(updatingExisting && existingRecord.idNo){
+      assignedId = existingRecord.idNo;
+      idNo.value = assignedId;
+    } else if(station){
       const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
       const next = count + 1;
       localStorage.setItem(storageKey(station), String(next));
@@ -1076,6 +1304,19 @@
       btnDownload.download = 'vendor-details-' + assignedId + '.pdf';
       pdfLoading.style.display = 'none';
       pdfFrame.style.display = 'block';
+
+      // Save documents + PDF + JSON record to Google Drive & Sheet
+      showToast('SAVING TO DRIVE & SHEET… / ड्राइव और शीट में सेव हो रहा है…', false);
+      try{
+        const result = await submitToBackend(assignedId, blob);
+        if(result && result.success){
+          showToast('VENDOR DETAILS SAVED SUCCESSFULLY / डेटा सफलतापूर्वक सेव हो गया', false);
+        } else {
+          showToast('CLOUD SAVE FAILED: ' + (result && result.error ? result.error : 'Unknown error'), true);
+        }
+      } catch(uploadErr){
+        showToast('CLOUD SAVE FAILED: ' + (uploadErr && uploadErr.message ? uploadErr.message : 'Network error'), true);
+      }
     } catch(err){
       pdfLoading.innerHTML = '<span style="color:#f3b9b3;">COULD NOT GENERATE PDF REPORT.<br>' + (err && err.message ? err.message : 'Unknown error') + '</span>';
     }
@@ -1087,7 +1328,6 @@
   btnPdfClose.addEventListener('click', function(){
     pdfOverlay.classList.remove('show');
     pdfFrame.src = 'about:blank';
-    showToast('VENDOR DETAILS SUBMITTED (DEMO). GOOGLE SHEET SYNC PENDING.', false);
     resetFormAfterSubmit();
   });
 

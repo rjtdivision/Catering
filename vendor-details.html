@@ -368,6 +368,7 @@
           <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg">
           <span id="fLabelPhoto">TAP TO UPLOAD</span>
         </div>
+        <a href="#" target="_blank" rel="noopener" id="fViewPhoto" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
       </div>
 
       <div class="upload-card">
@@ -379,6 +380,7 @@
           <input type="file" id="fSignature" name="fSignature" accept="image/jpeg">
           <span id="fLabelSign">TAP TO UPLOAD</span>
         </div>
+        <a href="#" target="_blank" rel="noopener" id="fViewSign" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
       </div>
     </div>
 
@@ -394,6 +396,7 @@
             <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*,.pdf">
             <span id="fLabelAF">TAP TO UPLOAD</span>
           </div>
+          <a href="#" target="_blank" rel="noopener" id="fViewAF" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
         </div>
         <div>
           <label class="mini">BACK SIDE <span class="hi">/ पीछे</span></label>
@@ -401,6 +404,7 @@
             <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*,.pdf">
             <span id="fLabelAB">TAP TO UPLOAD</span>
           </div>
+          <a href="#" target="_blank" rel="noopener" id="fViewAB" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
         </div>
       </div>
     </div>
@@ -419,6 +423,7 @@
             <input type="file" id="fPolice" name="fPolice" accept="image/*,.pdf">
             <span id="fLabel1">TAP TO UPLOAD</span>
           </div>
+          <a href="#" target="_blank" rel="noopener" id="fView1" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
@@ -442,6 +447,7 @@
             <input type="file" id="fMedical" name="fMedical" accept="image/*,.pdf">
             <span id="fLabel2">TAP TO UPLOAD</span>
           </div>
+          <a href="#" target="_blank" rel="noopener" id="fView2" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
@@ -465,6 +471,7 @@
             <input type="file" id="fFssai" name="fFssai" accept="image/*,.pdf">
             <span id="fLabel3">TAP TO UPLOAD</span>
           </div>
+          <a href="#" target="_blank" rel="noopener" id="fView3" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
         </div>
         <div>
           <label class="mini">VALID UPTO <span class="hi">/ मान्य तिथि</span></label>
@@ -565,6 +572,12 @@
   const unitInput = document.getElementById('unitName');
   const unitList = document.getElementById('unitOptions');
   const idNo = document.getElementById('idNo');
+
+  // Aadhar must always be exactly digits — no spaces/dashes — so duplicate-check matching never drifts.
+  const aadharInput = document.getElementById('aadhar');
+  aadharInput.addEventListener('input', () => {
+    aadharInput.value = aadharInput.value.replace(/[^0-9]/g, '').slice(0, 12);
+  });
   const designationSelect = document.getElementById('designation');
 
   // ================= Duplicate Aadhar / Edit-existing-record state =================
@@ -596,17 +609,31 @@
   };
   const DOC_LABEL_MAP = { fPhoto:'fLabelPhoto', fSignature:'fLabelSign', fAadharFront:'fLabelAF', fAadharBack:'fLabelAB', fPolice:'fLabel1', fMedical:'fLabel2', fFssai:'fLabel3' };
   const DOC_CARD_MAP  = { fPhoto:'fileBtnPhoto', fSignature:'fileBtnSign', fAadharFront:'fileBtnAF', fAadharBack:'fileBtnAB', fPolice:'fileBtn1', fMedical:'fileBtn2', fFssai:'fileBtn3' };
+  const DOC_VIEW_MAP   = { fPhoto:'fViewPhoto', fSignature:'fViewSign', fAadharFront:'fViewAF', fAadharBack:'fViewAB', fPolice:'fView1', fMedical:'fView2', fFssai:'fView3' };
 
   function loadExistingRecordIntoForm(record){
+    // Select values were stored uppercased (from val()); match case-insensitively so
+    // mixed-case option values (e.g. designation="Manager") still restore correctly.
+    function setSelectValueCI(selectEl, value){
+      if(!value) return;
+      const target = String(value).trim().toUpperCase();
+      for(const opt of selectEl.options){
+        if(opt.value.toUpperCase() === target || opt.textContent.trim().toUpperCase() === target){
+          selectEl.value = opt.value;
+          return;
+        }
+      }
+    }
+
     document.getElementById('name').value = record.name || '';
     if(record.station){
-      stationSelect.value = record.station;
+      setSelectValueCI(stationSelect, record.station);
       stationSelect.dispatchEvent(new Event('change'));
     }
     document.getElementById('unitName').value = record.unitName || '';
-    document.getElementById('designation').value = record.designation || '';
+    setSelectValueCI(document.getElementById('designation'), record.designation);
     document.getElementById('mobile').value = record.mobile || '';
-    document.getElementById('bloodGroup').value = record.bloodGroup || '';
+    setSelectValueCI(document.getElementById('bloodGroup'), record.bloodGroup);
     document.getElementById('aadhar').value = record.aadhar || '';
     idNo.value = record.idNo || '';
     document.getElementById('dPolice').value = record.policeValidUpto || '';
@@ -623,13 +650,19 @@
       const input = document.getElementById(inputId);
       const label = document.getElementById(DOC_LABEL_MAP[inputId]);
       const card = document.getElementById(DOC_CARD_MAP[inputId]);
+      const viewLink = document.getElementById(DOC_VIEW_MAP[inputId]);
       input.value = '';
-      if(existingDocUrl(field)){
+      const url = existingDocUrl(field);
+      if(url){
         label.textContent = 'ON FILE — TAP TO REPLACE';
         card.classList.add('has-file');
+        viewLink.href = url;
+        viewLink.style.display = 'inline-block';
       } else {
         label.textContent = 'TAP TO UPLOAD';
         card.classList.remove('has-file');
+        viewLink.href = '#';
+        viewLink.style.display = 'none';
       }
     });
 
@@ -638,7 +671,13 @@
 
   dupLoadBtn.addEventListener('click', () => {
     dupOverlay.style.display = 'none';
-    if(pendingRecordCheck) loadExistingRecordIntoForm(pendingRecordCheck);
+    if(pendingRecordCheck){
+      try{
+        loadExistingRecordIntoForm(pendingRecordCheck);
+      } catch(err){
+        showToast('COULD NOT LOAD EXISTING DETAILS: ' + (err && err.message ? err.message : 'Unknown error'), true);
+      }
+    }
     pendingRecordCheck = null;
   });
   dupCancelBtn.addEventListener('click', () => {
@@ -875,8 +914,12 @@
   document.getElementById('btnEdit').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
 
+  const mainSubmitBtn = document.querySelector('.submit-btn');
+  let submitInProgress = false;
+
   form.addEventListener('submit', async function(e){
     e.preventDefault();
+    if(submitInProgress) return; // ignore double-taps while a check/submit is already running
     if(hasInvalidPastDate()){
       showToast('VALIDITY DATE CANNOT BE BEFORE TODAY / मान्य तिथि आज से पहले नहीं हो सकती', true);
       return;
@@ -887,20 +930,27 @@
       return;
     }
 
-    // Only re-check when the Aadhar number is new / different from the record we're already editing.
-    if(aadharVal !== editingAadhar){
-      const check = await checkAadharExists(aadharVal);
-      if(check && check.exists && check.record){
-        pendingRecordCheck = check.record;
-        dupOverlay.style.display = 'flex';
-        return;
+    submitInProgress = true;
+    mainSubmitBtn.disabled = true;
+    try{
+      // Only re-check when the Aadhar number is new / different from the record we're already editing.
+      if(aadharVal !== editingAadhar){
+        const check = await checkAadharExists(aadharVal);
+        if(check && check.exists && check.record){
+          pendingRecordCheck = check.record;
+          dupOverlay.style.display = 'flex';
+          return;
+        }
+        isEditMode = false;
+        editingAadhar = '';
+        existingRecord = null;
       }
-      isEditMode = false;
-      editingAadhar = '';
-      existingRecord = null;
-    }
 
-    openModal();
+      openModal();
+    } finally {
+      submitInProgress = false;
+      mainSubmitBtn.disabled = false;
+    }
   });
 
   // ================= Backend upload (Google Sheet + Drive via Apps Script) =================
@@ -1264,6 +1314,7 @@
     unitList.innerHTML = '';
     document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
     document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO UPLOAD'; });
+    document.querySelectorAll('[id^="fView"]').forEach(a => { a.style.display = 'none'; a.href = '#'; });
     ['dPolice','dMedical','dFssai'].forEach(id => updateDateDisplay(id));
     isEditMode = false;
     editingAadhar = '';

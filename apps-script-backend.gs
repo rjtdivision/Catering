@@ -32,13 +32,30 @@ var SHEET_ID = '1LBAxObNxRTF2RVu8WlVMFw2UDq3C91Gztb9rRyP-rOY';
 var SHEET_NAME = 'catering_data';
 var DRIVE_FOLDER_ID = '186VQZH294gSTpl3VaNajAoraGseBM0Et';
 
+/** Strips everything except digits/letters, so "726655977066" and a Sheets-auto-converted
+ *  number in the same cell always compare equal — this is what stops duplicate rows.
+ *  Aadhar numbers are always 12 digits; if Sheets ever auto-converted a value to a Number
+ *  and dropped a leading zero, this re-pads it so old and new values still match. */
+function normalizeAadhar(v) {
+  var s = String(v == null ? '' : v).replace(/[^0-9A-Za-z]/g, '');
+  if (/^[0-9]+$/.test(s) && s.length > 0 && s.length < 12) {
+    s = ('000000000000' + s).slice(-12);
+  }
+  return s;
+}
+
 function doPost(e) {
+  var lock = LockService.getScriptLock();
   try {
     var data = JSON.parse(e.postData.contents);
-    var aadhar = String(data.aadhar || '').replace(/[^0-9A-Za-z]/g, '');
+    var aadhar = normalizeAadhar(data.aadhar);
     if (!aadhar) {
       throw new Error('Aadhar Card No. is missing — cannot file this submission.');
     }
+
+    // Only one submission at a time may search-and-write the sheet, so two near-simultaneous
+    // requests for the same Aadhar can never both decide "not found" and both append a row.
+    lock.waitLock(30000);
 
     var ss = SpreadsheetApp.openById(SHEET_ID);
     var sheet = ss.getSheetByName(SHEET_NAME);
@@ -46,6 +63,7 @@ function doPost(e) {
       sheet = ss.insertSheet(SHEET_NAME);
       sheet.appendRow(['Aadhar Card No.', 'Data (JSON)']);
     }
+    sheet.getRange('A:A').setNumberFormat('@'); // plain text, so numeric Aadhar values never get reformatted
 
     // Look for an existing row for this Aadhar number (server is the source of truth)
     var existingRowIndex = -1;
@@ -54,7 +72,7 @@ function doPost(e) {
     if (lastRow >= 2) {
       var aadharCol = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
       for (var r = 0; r < aadharCol.length; r++) {
-        if (String(aadharCol[r][0]) === aadhar) {
+        if (normalizeAadhar(aadharCol[r][0]) === aadhar) {
           existingRowIndex = r + 2; // +1 for header row, +1 for 1-based index
           break;
         }
@@ -161,6 +179,8 @@ function doPost(e) {
     return ContentService
       .createTextOutput(JSON.stringify({ success: false, error: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    try { lock.releaseLock(); } catch (releaseErr) { /* lock was never acquired — nothing to release */ }
   }
 }
 
@@ -171,8 +191,34 @@ function doPost(e) {
  */
 function doGet(e) {
   var aadharParam = e && e.parameter ? e.parameter.aadhar : null;
+  var debugParam = e && e.parameter ? e.parameter.debug : null;
+
+  if (debugParam) {
+    try {
+      var ss = SpreadsheetApp.openById(SHEET_ID);
+      var sheet = ss.getSheetByName(SHEET_NAME);
+      var rows = [];
+      if (sheet) {
+        var lastRow = sheet.getLastRow();
+        if (lastRow >= 2) {
+          var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+          for (var i = 0; i < values.length; i++) {
+            rows.push({ row: i + 2, raw: values[i][0], rawType: typeof values[i][0], normalized: normalizeAadhar(values[i][0]) });
+          }
+        }
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify({ sheetFound: !!sheet, totalDataRows: rows.length, rows: rows }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: err.message }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   if (aadharParam) {
-    var aadhar = String(aadharParam).replace(/[^0-9A-Za-z]/g, '');
+    var aadhar = normalizeAadhar(aadharParam);
     try {
       var ss = SpreadsheetApp.openById(SHEET_ID);
       var sheet = ss.getSheetByName(SHEET_NAME);
@@ -181,7 +227,7 @@ function doGet(e) {
         if (lastRow >= 2) {
           var values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
           for (var i = 0; i < values.length; i++) {
-            if (String(values[i][0]) === aadhar) {
+            if (normalizeAadhar(values[i][0]) === aadhar) {
               var record = null;
               try { record = JSON.parse(values[i][1]); } catch (e2) { record = null; }
               return ContentService

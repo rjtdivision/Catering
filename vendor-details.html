@@ -365,8 +365,8 @@
           PASSPORT PHOTO <span class="hi">/ फोटो</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnPhoto">
-          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg">
-          <span id="fLabelPhoto">TAP TO CHOOSE / UPLOAD</span>
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg" capture="environment">
+          <span id="fLabelPhoto">TAP TO UPLOAD</span>
         </div>
       </div>
 
@@ -376,8 +376,8 @@
           SIGNATURE <span class="hi">/ हस्ताक्षर</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnSign">
-          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg">
-          <span id="fLabelSign">TAP TO CHOOSE / UPLOAD</span>
+          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg" capture="environment">
+          <span id="fLabelSign">TAP TO UPLOAD</span>
         </div>
       </div>
     </div>
@@ -391,15 +391,15 @@
         <div>
           <label class="mini">FRONT SIDE <span class="hi">/ आगे</span></label>
           <div class="file-btn" id="fileBtnAF">
-            <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*,.pdf">
-            <span id="fLabelAF">TAP TO CHOOSE / UPLOAD</span>
+            <input type="file" id="fAadharFront" name="fAadharFront" accept="image/*" capture="environment">
+            <span id="fLabelAF">TAP TO UPLOAD</span>
           </div>
         </div>
         <div>
           <label class="mini">BACK SIDE <span class="hi">/ पीछे</span></label>
           <div class="file-btn" id="fileBtnAB">
-            <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*,.pdf">
-            <span id="fLabelAB">TAP TO CHOOSE / UPLOAD</span>
+            <input type="file" id="fAadharBack" name="fAadharBack" accept="image/*" capture="environment">
+            <span id="fLabelAB">TAP TO UPLOAD</span>
           </div>
         </div>
       </div>
@@ -416,8 +416,8 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn1">
-            <input type="file" id="fPolice" name="fPolice" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel1">TAP TO CHOOSE / UPLOAD</span>
+            <input type="file" id="fPolice" name="fPolice" accept="image/*" capture="environment">
+            <span id="fLabel1">TAP TO UPLOAD</span>
           </div>
         </div>
         <div>
@@ -439,8 +439,8 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn2">
-            <input type="file" id="fMedical" name="fMedical" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel2">TAP TO CHOOSE / UPLOAD</span>
+            <input type="file" id="fMedical" name="fMedical" accept="image/*" capture="environment">
+            <span id="fLabel2">TAP TO UPLOAD</span>
           </div>
         </div>
         <div>
@@ -462,8 +462,8 @@
         <div>
           <label class="mini">UPLOAD FILE <span class="hi">/ फाइल अपलोड</span></label>
           <div class="file-btn" id="fileBtn3">
-            <input type="file" id="fFssai" name="fFssai" accept=".pdf,.jpg,.jpeg,.png">
-            <span id="fLabel3">TAP TO CHOOSE / UPLOAD</span>
+            <input type="file" id="fFssai" name="fFssai" accept="image/*" capture="environment">
+            <span id="fLabel3">TAP TO UPLOAD</span>
           </div>
         </div>
         <div>
@@ -590,14 +590,14 @@
         if(!isJpg(input.files[0])){
           showToast('Only JPG photos are allowed / केवल JPG फोटो मान्य है', true);
           input.value = '';
-          label.textContent = 'TAP TO CHOOSE / UPLOAD';
+          label.textContent = 'TAP TO UPLOAD';
           card.classList.remove('has-file');
           return;
         }
         label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
         card.classList.add('has-file');
       } else {
-        label.textContent = 'TAP TO CHOOSE / UPLOAD';
+        label.textContent = 'TAP TO UPLOAD';
         card.classList.remove('has-file');
       }
     });
@@ -621,7 +621,7 @@
         label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
         card.classList.add('has-file');
       } else {
-        label.textContent = 'TAP TO CHOOSE / UPLOAD';
+        label.textContent = 'TAP TO UPLOAD';
         card.classList.remove('has-file');
       }
     });
@@ -1042,7 +1042,7 @@
     unitInput.placeholder = 'SELECT STATION TO SEARCH UNITS';
     unitList.innerHTML = '';
     document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
-    document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO CHOOSE / UPLOAD'; });
+    document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO UPLOAD'; });
     ['dPolice','dMedical','dFssai'].forEach(id => updateDateDisplay(id));
     updateIdNo();
   }

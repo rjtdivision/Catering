@@ -263,21 +263,41 @@
   }
   .pdf-head h3{font-family:var(--font-display);font-size:13.5px;margin:0;font-weight:600;}
   .pdf-head p{margin:1px 0 0;font-size:10px;color:var(--cyan-300);}
-  .pdf-head-btns{display:flex;gap:6px;flex:0 0 auto;}
-  .pdf-head-btns a, .pdf-head-btns button{
-    font-family:var(--font-display);font-size:10.5px;font-weight:600;
-    border-radius:8px;padding:7px 10px;border:none;cursor:pointer;text-decoration:none;
-    display:inline-flex;align-items:center;
+  .btn-close{
+    flex:0 0 auto;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);
+    border-radius:8px;padding:7px 12px;font-family:var(--font-display);font-size:10.5px;font-weight:600;cursor:pointer;
   }
-  .btn-dl{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);}
-  .btn-close{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25) !important;}
-  #pdfFrame{flex:1 1 auto;width:100%;border:0;background:#4a5b6e;}
-  .pdf-loading{
+  .pdf-body{
     flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:26px 22px;overflow-y:auto;
+  }
+  .pdf-loading{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
     color:#bcd4ea;font-size:12px;gap:10px;
   }
   .spinner{width:26px;height:26px;border:3px solid rgba(255,255,255,0.2);border-top-color:var(--cyan-400);border-radius:50%;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- QR + View/Download/Print result ---- */
+  #qrResult{display:none;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:300px;}
+  #qrResult.show{display:flex;}
+  .qr-box{
+    width:180px;height:180px;background:#fff;border-radius:14px;padding:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);margin-bottom:14px;
+  }
+  .qr-box img{width:100%;height:100%;object-fit:contain;}
+  .qr-aadhar{font-family:var(--font-display);font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;letter-spacing:0.4px;}
+  .qr-caption{font-size:11px;color:var(--cyan-300);margin:0 0 20px;line-height:1.5;max-width:260px;}
+  .qr-actions{display:flex;flex-direction:column;gap:9px;width:100%;}
+  .qr-actions a, .qr-actions button{
+    font-family:var(--font-display);font-size:12px;font-weight:600;
+    border-radius:10px;padding:12px 10px;border:none;cursor:pointer;text-decoration:none;
+    display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  }
+  .qr-actions svg{width:15px;height:15px;flex:0 0 auto;}
+  .qr-btn-view{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);}
+  .qr-btn-dl{background:#fff;color:var(--navy-800);}
+  .qr-btn-print{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.28) !important;}
 
   /* ---- toast ---- */
   #toast{
@@ -438,7 +458,7 @@
     <div class="upload-card">
       <div class="doc-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-        MEDICAL CERTIFICATE <span class="hi">/ मेडिकल प्रमाणपत्र</span> <span class="req">*</span>
+        MEDICAL CERTIFICATE <span class="hi">/ मेडिकल प्रमाणपत्र</span> <span class="hi" style="font-weight:500;">(OPTIONAL)</span>
       </div>
       <div class="upload-grid">
         <div>
@@ -522,17 +542,35 @@
       <h3>VENDOR DETAILS REPORT</h3>
       <p>वेंडर विवरण रिपोर्ट</p>
     </div>
-    <div class="pdf-head-btns">
-      <a class="btn-dl" id="btnDownload" href="#" download="vendor-details-report.pdf">DOWNLOAD</a>
-      <button class="btn-close" id="btnPdfClose">CLOSE</button>
+    <button class="btn-close" id="btnPdfClose">CLOSE</button>
+  </div>
+  <div class="pdf-body">
+    <div class="pdf-loading" id="pdfLoading">
+      <div class="spinner"></div>
+      <span>GENERATING PDF REPORT&hellip; / रिपोर्ट तैयार हो रही है&hellip;</span>
+    </div>
+    <div id="qrResult">
+      <div class="qr-box"><img id="qrImage" src="" alt="QR Code"></div>
+      <p class="qr-aadhar" id="qrAadhar"></p>
+      <p class="qr-caption">SCAN THIS QR TO VIEW THE REPORT<br>/ रिपोर्ट देखने के लिए यह क्यूआर स्कैन करें</p>
+      <div class="qr-actions">
+        <a class="qr-btn-view" id="btnViewPdf" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          VIEW PDF
+        </a>
+        <a class="qr-btn-dl" id="btnDownloadPdf" href="#" download="vendor-details-report.pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          DOWNLOAD PDF
+        </a>
+        <button type="button" class="qr-btn-print" id="btnPrintPdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          PRINT
+        </button>
+      </div>
     </div>
   </div>
-  <div class="pdf-loading" id="pdfLoading">
-    <div class="spinner"></div>
-    <span>GENERATING PDF REPORT&hellip; / रिपोर्ट तैयार हो रही है&hellip;</span>
-  </div>
-  <iframe id="pdfFrame" style="display:none;" title="Vendor details PDF report"></iframe>
 </div>
+<iframe id="printFrame" style="display:none;" title="Print vendor details PDF report"></iframe>
 
 <div id="toast"></div>
 
@@ -585,9 +623,48 @@
   let editingAadhar = '';
   let existingRecord = null;
   let pendingRecordCheck = null;
+  let existingDocBytes = {};
+  let existingDocBytesPromise = null;
   const dupOverlay = document.getElementById('dupOverlay');
   const dupLoadBtn = document.getElementById('dupLoadBtn');
   const dupCancelBtn = document.getElementById('dupCancelBtn');
+
+  // Fetches the raw content of every already-uploaded document for this Aadhar,
+  // so the PDF can still show them even if the user doesn't re-upload while editing.
+  async function fetchExistingDocBytes(aadharNum){
+    if(!aadharNum || !APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return {};
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?aadhar=' + encodeURIComponent(aadharNum) + '&fetchDocs=1');
+      const data = await res.json();
+      return (data && data.files) ? data.files : {};
+    } catch(err){
+      return {};
+    }
+  }
+
+  function base64ToBytes(b64){
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  // Returns the freshly-selected File for this input if any, otherwise falls back
+  // to the previously-uploaded document's bytes (as a Blob, so it works exactly
+  // like a File wherever it's used) so edits don't lose already-uploaded documents.
+  function getFileOrExisting(inputId){
+    const freshFile = getFile(inputId);
+    if(freshFile) return freshFile;
+    const field = DOC_FIELD_MAP[inputId];
+    const cached = field && existingDocBytes[field];
+    if(cached && cached.base64){
+      try{
+        const bytes = base64ToBytes(cached.base64);
+        return new Blob([bytes], { type: cached.mimeType || 'application/octet-stream' });
+      } catch(e){ return null; }
+    }
+    return null;
+  }
 
   async function checkAadharExists(aadharNum){
     if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return { exists:false };
@@ -644,6 +721,15 @@
     isEditMode = true;
     editingAadhar = record.aadhar || '';
     existingRecord = record;
+
+    // Kick off fetching the actual bytes of already-uploaded documents in the
+    // background, so they're ready by the time the PDF gets generated even if
+    // the user doesn't re-upload them.
+    existingDocBytes = {};
+    existingDocBytesPromise = fetchExistingDocBytes(editingAadhar).then(files => {
+      existingDocBytes = files || {};
+      return existingDocBytes;
+    });
 
     Object.keys(DOC_FIELD_MAP).forEach(inputId => {
       const field = DOC_FIELD_MAP[inputId];
@@ -895,7 +981,6 @@
 
     ['fPhoto','fSignature','fAadharFront','fAadharBack'].forEach(id => { if(!getFile(id) && !existingDocUrl(DOC_FIELD_MAP[id])) missingCount++; });
     if((!getFile('fPolice') && !existingDocUrl('policeCertificate')) || !val('dPolice')) missingCount++;
-    if((!getFile('fMedical') && !existingDocUrl('medicalCertificate')) || !val('dMedical')) missingCount++;
     if((!getFile('fFssai') && !existingDocUrl('fssaiLicense')) || !val('dFssai')) missingCount++;
 
     if(missingCount > 0){
@@ -1028,10 +1113,15 @@
 
   // ================= PDF report generation (pdf-lib) =================
   const pdfOverlay = document.getElementById('pdfOverlay');
-  const pdfFrame = document.getElementById('pdfFrame');
   const pdfLoading = document.getElementById('pdfLoading');
-  const btnDownload = document.getElementById('btnDownload');
+  const qrResult = document.getElementById('qrResult');
+  const qrImage = document.getElementById('qrImage');
+  const qrAadhar = document.getElementById('qrAadhar');
+  const btnViewPdf = document.getElementById('btnViewPdf');
+  const btnDownloadPdf = document.getElementById('btnDownloadPdf');
+  const btnPrintPdf = document.getElementById('btnPrintPdf');
   const btnPdfClose = document.getElementById('btnPdfClose');
+  const printFrame = document.getElementById('printFrame');
   let currentPdfUrl = null;
 
   function loadImageFromFile(file){
@@ -1135,6 +1225,12 @@
   }
 
   async function generatePdfReport(){
+    // If editing an existing record, make sure previously-uploaded documents'
+    // actual bytes have finished loading before we start drawing the PDF.
+    if(isEditMode && existingDocBytesPromise){
+      try{ await existingDocBytesPromise; } catch(e){ /* fall back to whatever finished loading, or none */ }
+    }
+
     const NAVY   = PDFLib.rgb(0.0235,0.1020,0.2000);
     const NAVY800= PDFLib.rgb(0.0706,0.2275,0.4196);
     const CYAN   = PDFLib.rgb(0.0235,0.7137,0.8314);
@@ -1209,11 +1305,11 @@
 
     const leftX = MARGIN;
     const photoY = contentTop - PHOTO_H;
-    await drawCoverBox(doc, page1, getFile('fPhoto'), leftX, photoY, PHOTO_W, PHOTO_H, 'PHOTO', reg, MUTED, LINE, BG);
+    await drawCoverBox(doc, page1, getFileOrExisting('fPhoto'), leftX, photoY, PHOTO_W, PHOTO_H, 'PHOTO', reg, MUTED, LINE, BG);
     drawBilingual(page1, leftX, photoY-11, 'PASSPORT PHOTO', 'फोटो', 6.5, bold, MUTED, 6.5);
 
     const signY = photoY - 12 - SIGN_H - 14;
-    await drawContainBox(doc, page1, getFile('fSignature'), leftX, signY, SIGN_W, SIGN_H, reg, MUTED, LINE, BG, 'SIGNATURE NOT UPLOADED');
+    await drawContainBox(doc, page1, getFileOrExisting('fSignature'), leftX, signY, SIGN_W, SIGN_H, reg, MUTED, LINE, BG, 'SIGNATURE NOT UPLOADED');
     page1.drawRectangle({ x:leftX, y:signY, width:SIGN_W, height:SIGN_H, borderColor:LINE, borderWidth:1 });
     drawBilingual(page1, leftX, signY-11, 'SIGNATURE', 'हस्ताक्षर', 6.5, bold, MUTED, 6.5);
 
@@ -1278,19 +1374,65 @@
     const boxH = boxW / 1.586;
     const boxY = sectionY - boxH;
 
-    await drawCoverBox(doc, page1, getFile('fAadharFront'), MARGIN, boxY, boxW, boxH, 'FRONT SIDE', reg, MUTED, LINE, BG);
+    await drawCoverBox(doc, page1, getFileOrExisting('fAadharFront'), MARGIN, boxY, boxW, boxH, 'FRONT SIDE', reg, MUTED, LINE, BG);
     drawBilingual(page1, MARGIN, boxY-11, 'FRONT SIDE', 'आगे', 6.5, bold, MUTED, 6.5);
 
     const rightX = MARGIN + boxW + gap;
-    await drawCoverBox(doc, page1, getFile('fAadharBack'), rightX, boxY, boxW, boxH, 'BACK SIDE', reg, MUTED, LINE, BG);
+    await drawCoverBox(doc, page1, getFileOrExisting('fAadharBack'), rightX, boxY, boxW, boxH, 'BACK SIDE', reg, MUTED, LINE, BG);
     drawBilingual(page1, rightX, boxY-11, 'BACK SIDE', 'पीछे', 6.5, bold, MUTED, 6.5);
+
+    // ---- QR Code: scan to open the latest report for this Aadhar (below Aadhar Card section) ----
+    const aadharValForQr = val('aadhar') || '';
+    let qrPngBytes = null;
+    let qrImgUrl = null;
+    if(aadharValForQr && APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === -1){
+      try{
+        const qrTargetUrl = APPS_SCRIPT_URL + '?aadhar=' + encodeURIComponent(aadharValForQr) + '&view=pdf';
+        qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=' + encodeURIComponent(qrTargetUrl);
+        // Guard with a timeout so a slow/blocked network can never hang the whole
+        // "GENERATING…" step — if the QR service doesn't answer quickly, we just
+        // skip the QR image and carry on with the rest of the PDF + submission.
+        const qrController = new AbortController();
+        const qrTimeoutId = setTimeout(() => qrController.abort(), 5000);
+        try{
+          const qrRes = await fetch(qrImgUrl, { signal: qrController.signal });
+          if(qrRes.ok){ qrPngBytes = await qrRes.arrayBuffer(); }
+        } finally {
+          clearTimeout(qrTimeoutId);
+        }
+      } catch(qrFetchErr){ qrPngBytes = null; }
+    }
+
+    let qrSectionTop = boxY - 11 - 26;
+    drawBilingual(page1, MARGIN, qrSectionTop, 'SCAN TO VIEW FULL REPORT', 'पूरी रिपोर्ट देखने हेतु स्कैन करें', 9.5, bold, NAVY800, 8.5);
+    page1.drawRectangle({ x:MARGIN, y:qrSectionTop-4, width:3, height:11, color:CYAN });
+
+    const qrSize = 78;
+    const qrBoxY = qrSectionTop - 14 - qrSize;
+    page1.drawRectangle({ x:MARGIN, y:qrBoxY, width:qrSize, height:qrSize, color:WHITE, borderColor:LINE, borderWidth:1 });
+    if(qrPngBytes){
+      try{
+        const qrImg = await doc.embedPng(qrPngBytes);
+        page1.drawImage(qrImg, { x:MARGIN+5, y:qrBoxY+5, width:qrSize-10, height:qrSize-10 });
+      } catch(qrEmbedErr){
+        page1.drawText('QR UNAVAILABLE', { x:MARGIN+8, y:qrBoxY+qrSize/2-3, size:7, font:reg, color:MUTED });
+      }
+    } else {
+      page1.drawText('QR UNAVAILABLE', { x:MARGIN+8, y:qrBoxY+qrSize/2-3, size:7, font:reg, color:MUTED });
+    }
+
+    const qrCapX = MARGIN + qrSize + 14;
+    drawBilingual(page1, qrCapX, qrBoxY+qrSize-14, 'AADHAR', 'आधार', 7.5, bold, NAVY800, 7);
+    page1.drawText(aadharValForQr || '-', { x:qrCapX, y:qrBoxY+qrSize-26, size:9, font:bold, color:INK });
+    page1.drawText('Scan this QR with any smartphone camera to open', { x:qrCapX, y:qrBoxY+qrSize-40, size:7, font:reg, color:MUTED });
+    page1.drawText('the latest saved vendor report PDF for this record.', { x:qrCapX, y:qrBoxY+qrSize-50, size:7, font:reg, color:MUTED });
 
     const footNote = 'THIS IS A SYSTEM-GENERATED REPORT. PHOTO & AADHAR IMAGES ARE AUTO-FITTED TO A FIXED FRAME.';
     page1.drawText(footNote, { x:MARGIN, y:20, size:6.5, font:reg, color:MUTED });
 
     // ---------------- Certificate pages (only if uploaded) ----------------
     async function addCertPage(titleEn, titleHi, fileId, dateId){
-      const file = getFile(fileId);
+      const file = getFileOrExisting(fileId);
       if(!file) return;
       const page = doc.addPage([PAGE_W, PAGE_H]);
       drawHeader(page, titleEn.toUpperCase(), titleHi, val(dateId) ? ('Valid upto: ' + formatDateDMY(val(dateId))).toUpperCase() : 'VALIDITY DATE NOT PROVIDED');
@@ -1304,7 +1446,11 @@
     await addCertPage('FSSAI License', 'एफएसएसएआई लाइसेंस', 'fFssai', 'dFssai');
 
     const bytes = await doc.save();
-    return new Blob([bytes], { type: 'application/pdf' });
+    return {
+      blob: new Blob([bytes], { type: 'application/pdf' }),
+      qrImgUrl: qrImgUrl,
+      aadhar: aadharValForQr
+    };
   }
 
   function resetFormAfterSubmit(){
@@ -1344,24 +1490,33 @@
     closeModal();
     pdfOverlay.classList.add('show');
     pdfLoading.style.display = 'flex';
-    pdfFrame.style.display = 'none';
+    qrResult.classList.remove('show');
 
     try{
-      const blob = await generatePdfReport();
+      const genResult = await generatePdfReport();
+      const blob = genResult.blob;
       if(currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
       currentPdfUrl = URL.createObjectURL(blob);
-      pdfFrame.src = currentPdfUrl;
-      btnDownload.href = currentPdfUrl;
-      btnDownload.download = 'vendor-details-' + assignedId + '.pdf';
+
+      btnViewPdf.href = currentPdfUrl;
+      btnDownloadPdf.href = currentPdfUrl;
+      btnDownloadPdf.download = 'vendor-details-' + assignedId + '.pdf';
+      qrImage.src = genResult.qrImgUrl || '';
+      qrAadhar.textContent = genResult.aadhar ? ('AADHAR: ' + genResult.aadhar) : '';
+
       pdfLoading.style.display = 'none';
-      pdfFrame.style.display = 'block';
+      qrResult.classList.add('show');
 
       // Save documents + PDF + JSON record to Google Drive & Sheet
       showToast('SAVING TO DRIVE & SHEET… / ड्राइव और शीट में सेव हो रहा है…', false);
       try{
         const result = await submitToBackend(assignedId, blob);
         if(result && result.success){
-          showToast('VENDOR DETAILS SAVED SUCCESSFULLY / डेटा सफलतापूर्वक सेव हो गया', false);
+          if(result.qrCodeError){
+            showToast('SAVED, BUT QR PNG FAILED: ' + result.qrCodeError, true);
+          } else {
+            showToast('VENDOR DETAILS SAVED SUCCESSFULLY / डेटा सफलतापूर्वक सेव हो गया', false);
+          }
         } else {
           showToast('CLOUD SAVE FAILED: ' + (result && result.error ? result.error : 'Unknown error'), true);
         }
@@ -1376,9 +1531,24 @@
     btnConfirm.textContent = 'CONFIRM & SUBMIT';
   });
 
+  btnPrintPdf.addEventListener('click', function(){
+    if(!currentPdfUrl) return;
+    printFrame.onload = function(){
+      try{
+        printFrame.contentWindow.focus();
+        printFrame.contentWindow.print();
+      } catch(printErr){
+        // Fallback: open the PDF in a new tab so the user can print from there.
+        window.open(currentPdfUrl, '_blank', 'noopener');
+      }
+    };
+    printFrame.src = currentPdfUrl;
+  });
+
   btnPdfClose.addEventListener('click', function(){
     pdfOverlay.classList.remove('show');
-    pdfFrame.src = 'about:blank';
+    qrResult.classList.remove('show');
+    printFrame.src = 'about:blank';
     resetFormAfterSubmit();
   });
 

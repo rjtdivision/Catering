@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vendor List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#061a33;--navy-900:#0b2545;--navy-800:#123a6b;--navy-700:#1a4a86;
+    --cyan-500:#06b6d4;--cyan-400:#22d3ee;--cyan-300:#67e8f9;--cyan-100:#e3fbff;--cyan-50:#f0fdff;
+    --line:#d7e8f5;--ink:#0b2545;--muted:#5a7291;--danger:#e0455a;--good:#1a9c5c;
+    --font-display:'Poppins',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);}
+  body{-webkit-tap-highlight-color:transparent;}
+
+  #page{display:flex;flex-direction:column;height:100%;}
+
+  /* ---- toolbar ---- */
+  .toolbar{
+    flex:0 0 auto;padding:10px 12px 8px;background:var(--cyan-50);
+    position:sticky;top:0;z-index:5;
+  }
+  .toolbar-row{display:flex;gap:8px;align-items:center;}
+  .search-wrap{position:relative;flex:1 1 auto;}
+  .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);}
+  #searchInput{
+    width:100%;padding:8px 10px 8px 28px;font-size:12px;font-family:var(--font-body);
+    border:1.5px solid var(--navy-700);border-radius:9px;outline:none;color:var(--navy-800);background:#fff;
+  }
+  #searchInput:focus{border-color:var(--cyan-500);box-shadow:0 0 0 3px rgba(6,182,212,0.15);}
+  .refresh-btn{
+    flex:0 0 auto;width:34px;height:34px;border-radius:9px;border:1.5px solid var(--navy-700);
+    background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .refresh-btn svg{width:16px;height:16px;stroke:var(--navy-800);}
+  .refresh-btn.spinning svg{animation:spin .8s linear infinite;}
+  .count-line{font-size:10px;color:var(--muted);margin:6px 2px 0;}
+
+  /* ---- list body ---- */
+  .list-body{flex:1 1 auto;overflow-y:auto;padding:2px 10px 16px;}
+
+  .state-box{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:50px 20px;color:var(--muted);gap:10px;
+  }
+  .state-box svg{width:38px;height:38px;stroke:var(--cyan-500);}
+  .state-box p{font-size:12px;margin:0;max-width:240px;line-height:1.5;}
+  .spinner{width:24px;height:24px;border:3px solid rgba(6,182,212,0.2);border-top-color:var(--cyan-500);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .vendor-card{
+    background:#fff;border:1px solid var(--line);border-radius:11px;
+    padding:10px 11px;margin-bottom:8px;box-shadow:0 2px 6px rgba(11,37,69,0.05);
+  }
+  .vc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+  .vc-sr{
+    flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:var(--navy-800);color:#fff;
+    font-size:10px;font-weight:700;font-family:var(--font-display);display:flex;align-items:center;justify-content:center;
+  }
+  .vc-name-wrap{flex:1 1 auto;min-width:0;}
+  .vc-name{
+    background:none;border:none;padding:0;text-align:left;font-family:var(--font-display);
+    font-size:13px;font-weight:600;color:var(--cyan-500);text-decoration:underline;cursor:pointer;
+    display:block;width:100%;white-space:normal;word-break:break-word;
+  }
+  .vc-sub{font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;}
+  .vc-qr{flex:0 0 auto;width:38px;height:38px;border-radius:6px;border:1px solid var(--line);overflow:hidden;background:var(--cyan-50);}
+  .vc-qr img{width:100%;height:100%;object-fit:contain;cursor:pointer;}
+  .vc-qr.empty{display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--muted);text-align:center;}
+  .vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:8px;}
+  .vc-field{font-size:10.5px;}
+  .vc-field .k{color:var(--muted);font-size:8.5px;text-transform:uppercase;display:block;margin-bottom:1px;}
+  .vc-field .v{color:var(--navy-800);font-weight:600;word-break:break-word;}
+
+  /* ---- detail report overlay ---- */
+  #reportOverlay{
+    position:fixed;inset:0;background:var(--navy-950);display:none;flex-direction:column;z-index:200;
+  }
+  #reportOverlay.show{display:flex;}
+  .rp-head{
+    flex:0 0 auto;background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
+    color:#fff;padding:12px 14px;border-bottom:2px solid var(--cyan-400);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .rp-head h3{font-family:var(--font-display);font-size:13.5px;margin:0;font-weight:600;word-break:break-word;}
+  .rp-head p{margin:1px 0 0;font-size:10px;color:var(--cyan-300);}
+  .rp-close{
+    flex:0 0 auto;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);
+    border-radius:8px;padding:7px 12px;font-family:var(--font-display);font-size:10.5px;font-weight:600;cursor:pointer;
+  }
+  .rp-body{flex:1 1 auto;overflow-y:auto;background:#fff;padding:12px 14px 26px;}
+
+  .rp-section-title{
+    font-family:var(--font-display);font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;
+    letter-spacing:0.5px;margin:14px 0 7px;padding:7px 10px;border-radius:7px;
+    background:linear-gradient(135deg,var(--navy-800) 0%,var(--navy-700) 100%);
+  }
+  .rp-section-title:first-child{margin-top:0;}
+  .rp-row{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px dashed var(--line);font-size:11.5px;}
+  .rp-row:last-child{border-bottom:none;}
+  .rp-row .rk{color:var(--muted);flex:0 0 42%;}
+  .rp-row .rv{color:var(--navy-800);font-weight:600;text-align:right;flex:1 1 auto;word-break:break-word;}
+  .rp-row .rv.missing{color:var(--danger);font-weight:500;}
+  .rp-row .rv.expired{color:var(--danger);}
+  .rp-row .rv.valid{color:var(--good);}
+  .rp-row a.doclink{color:var(--cyan-500);text-decoration:underline;font-weight:600;}
+
+  .rp-qr-box{display:flex;align-items:center;gap:12px;margin-top:6px;}
+  .rp-qr-box img{width:74px;height:74px;border:1px solid var(--line);border-radius:6px;background:#fff;}
+  .rp-qr-actions{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;}
+  .rp-qr-actions a,.rp-qr-actions button{
+    font-family:var(--font-display);font-size:10.5px;font-weight:600;text-align:center;
+    padding:7px 10px;border-radius:8px;border:none;cursor:pointer;text-decoration:none;
+  }
+  .rp-btn-view{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);}
+  .rp-btn-dl{background:var(--navy-800);color:#fff;}
+
+  #toast{
+    position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);
+    background:var(--navy-950);color:#fff;padding:11px 18px;border-radius:10px;
+    font-size:12.5px;font-weight:500;box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;z-index:300;
+    max-width:88%;text-align:center;border:1px solid rgba(103,232,249,0.3);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+  #toast.error{border-color:rgba(224,69,90,0.5);}
+</style>
+</head>
+<body>
+
+<div id="page">
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="SEARCH NAME / AADHAR / STATION / UNIT">
+      </div>
+      <button class="refresh-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+    </div>
+    <div class="count-line" id="countLine"></div>
+  </div>
+
+  <div class="list-body" id="listBody">
+    <div class="state-box" id="stateBox">
+      <div class="spinner"></div>
+      <p>LOADING VENDOR LIST&hellip; / वेंडर सूची लोड हो रही है&hellip;</p>
+    </div>
+    <div id="cards"></div>
+  </div>
+</div>
+
+<!-- ================= Full Vendor Report Overlay ================= -->
+<div id="reportOverlay">
+  <div class="rp-head">
+    <div>
+      <h3 id="rpName">VENDOR REPORT</h3>
+      <p>पूरा विवरण / Full Details</p>
+    </div>
+    <button class="rp-close" id="rpCloseBtn">CLOSE</button>
+  </div>
+  <div class="rp-body" id="rpBody"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // Same deployed Google Apps Script Web App URL used by vendor-details.html
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN59TMwl1JT58yQn1pPexSLO2rJscqITjUA-wFkwVVaEsYTyDDsgcM7hwZuGvDvSu5hQ/exec';
+
+  const stateBox = document.getElementById('stateBox');
+  const cardsEl = document.getElementById('cards');
+  const countLine = document.getElementById('countLine');
+  const searchInput = document.getElementById('searchInput');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const toast = document.getElementById('toast');
+  const reportOverlay = document.getElementById('reportOverlay');
+  const rpBody = document.getElementById('rpBody');
+  const rpName = document.getElementById('rpName');
+  const rpCloseBtn = document.getElementById('rpCloseBtn');
+
+  let allVendors = [];
+
+  function showToast(msg, isError){
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function formatDateDMY(iso){
+    if(!iso) return '';
+    const p = String(iso).split('-');
+    if(p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  function isExpired(iso){
+    if(!iso) return false;
+    const d = new Date(iso + 'T00:00:00');
+    if(isNaN(d.getTime())) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return d.getTime() < today.getTime();
+  }
+
+  function setState(kind, message){
+    if(kind === 'hidden'){ stateBox.style.display = 'none'; return; }
+    stateBox.style.display = 'flex';
+    let icon = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+    let spinner = kind === 'loading' ? '<div class="spinner"></div>' : icon;
+    stateBox.innerHTML = spinner + '<p>' + message + '</p>';
+  }
+
+  async function loadVendors(){
+    refreshBtn.classList.add('spinning');
+    setState('loading', 'LOADING VENDOR LIST&hellip; / वेंडर सूची लोड हो रही है&hellip;');
+    cardsEl.innerHTML = '';
+    countLine.textContent = '';
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1){
+      setState('error', 'BACKEND URL NOT CONFIGURED.');
+      refreshBtn.classList.remove('spinning');
+      return;
+    }
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?list=1');
+      const data = await res.json();
+      if(data && data.success){
+        allVendors = data.vendors || [];
+        renderCards(allVendors);
+      } else {
+        setState('error', 'COULD NOT LOAD VENDOR LIST: ' + (data && data.error ? esc(data.error) : 'Unknown error'));
+      }
+    } catch(err){
+      setState('error', 'NETWORK ERROR WHILE LOADING VENDOR LIST.');
+    }
+    refreshBtn.classList.remove('spinning');
+  }
+
+  function renderCards(vendors){
+    if(!vendors.length){
+      setState('empty', 'NO VENDORS SAVED YET. / अभी तक कोई वेंडर सेव नहीं हुआ।');
+      cardsEl.innerHTML = '';
+      countLine.textContent = '';
+      return;
+    }
+    setState('hidden', '');
+    countLine.textContent = vendors.length + ' VENDOR' + (vendors.length === 1 ? '' : 'S') + ' FOUND';
+    cardsEl.innerHTML = vendors.map((v, i) => {
+      const sr = i + 1;
+      const qrCell = v.qrCode
+        ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(v.qrCode) + '" alt="QR"></div>'
+        : '<div class="vc-qr empty">NO QR</div>';
+      return (
+        '<div class="vendor-card">' +
+          '<div class="vc-top">' +
+            '<div class="vc-sr">' + sr + '</div>' +
+            '<div class="vc-name-wrap">' +
+              '<button class="vc-name" data-aadhar="' + esc(v.aadhar) + '">' + esc(v.name || 'UNNAMED') + '</button>' +
+              '<div class="vc-sub">ID: ' + esc(v.idNo || '-') + '</div>' +
+            '</div>' +
+            qrCell +
+          '</div>' +
+          '<div class="vc-grid">' +
+            '<div class="vc-field"><span class="k">Aadhar No.</span><span class="v">' + esc(v.aadhar || '-') + '</span></div>' +
+            '<div class="vc-field"><span class="k">Station</span><span class="v">' + esc(v.station || '-') + '</span></div>' +
+            '<div class="vc-field" style="grid-column:1/-1;"><span class="k">Catering Unit</span><span class="v">' + esc(v.unitName || '-') + '</span></div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function applyFilter(){
+    const q = searchInput.value.trim().toUpperCase();
+    if(!q){ renderCards(allVendors); return; }
+    const filtered = allVendors.filter(v =>
+      (v.name || '').toUpperCase().includes(q) ||
+      (v.aadhar || '').toUpperCase().includes(q) ||
+      (v.station || '').toUpperCase().includes(q) ||
+      (v.unitName || '').toUpperCase().includes(q) ||
+      (v.idNo || '').toUpperCase().includes(q)
+    );
+    renderCards(filtered);
+  }
+
+  searchInput.addEventListener('input', applyFilter);
+  refreshBtn.addEventListener('click', loadVendors);
+
+  // ---- Card interactions: open QR link, or open full report ----
+  cardsEl.addEventListener('click', function(e){
+    const qrBox = e.target.closest('[data-qr-open]');
+    if(qrBox){
+      window.open(qrBox.getAttribute('data-qr-open'), '_blank', 'noopener');
+      return;
+    }
+    const nameBtn = e.target.closest('.vc-name');
+    if(nameBtn){
+      openReport(nameBtn.getAttribute('data-aadhar'));
+    }
+  });
+
+  function docRow(labelEn, labelHi, url){
+    const val = url
+      ? '<a class="doclink" href="' + esc(url) + '" target="_blank" rel="noopener">VIEW / देखें</a>'
+      : '<span class="missing">NOT UPLOADED</span>';
+    return '<div class="rp-row"><span class="rk">' + labelEn + ' <span style="color:#9db3c9;">/ ' + labelHi + '</span></span><span class="rv' + (url ? '' : ' missing') + '">' + val + '</span></div>';
+  }
+
+  function certRow(labelEn, labelHi, url, dateIso){
+    const dateStr = dateIso ? formatDateDMY(dateIso) : '';
+    let dateHtml = '<span class="missing">NO DATE</span>';
+    if(dateStr){
+      const expired = isExpired(dateIso);
+      dateHtml = '<span class="' + (expired ? 'expired' : 'valid') + '">' + dateStr + (expired ? ' (EXPIRED)' : '') + '</span>';
+    }
+    return docRow(labelEn, labelHi, url) +
+      '<div class="rp-row"><span class="rk">Valid Upto <span style="color:#9db3c9;">/ मान्य तिथि</span></span><span class="rv">' + dateHtml + '</span></div>';
+  }
+
+  function plainRow(labelEn, labelHi, value){
+    const v = value ? esc(value) : '';
+    return '<div class="rp-row"><span class="rk">' + labelEn + ' <span style="color:#9db3c9;">/ ' + labelHi + '</span></span><span class="rv' + (v ? '' : ' missing') + '">' + (v || 'NOT PROVIDED') + '</span></div>';
+  }
+
+  function openReport(aadhar){
+    const v = allVendors.find(x => String(x.aadhar) === String(aadhar));
+    if(!v){ showToast('VENDOR RECORD NOT FOUND.', true); return; }
+    const docs = v.documents || {};
+
+    rpName.textContent = v.name || 'VENDOR REPORT';
+
+    let html = '';
+
+    html += '<div class="rp-section-title">PERSONAL DETAILS <span style="color:#67e8f9;">/ व्यक्तिगत विवरण</span></div>';
+    html += plainRow('Name', 'नाम', v.name);
+    html += plainRow('Designation', 'पदनाम', v.designation);
+    html += plainRow('Station', 'स्टेशन', v.station);
+    html += plainRow('Catering Unit', 'यूनिट का नाम', v.unitName);
+    html += plainRow('Mobile No.', 'मोबाइल नंबर', v.mobile);
+    html += plainRow('Blood Group', 'रक्त समूह', v.bloodGroup);
+    html += plainRow('Aadhar Card No.', 'आधार कार्ड नंबर', v.aadhar);
+    html += plainRow('ID No.', 'आईडी नंबर', v.idNo);
+
+    html += '<div class="rp-section-title">IDENTITY DOCUMENTS <span style="color:#67e8f9;">/ पहचान दस्तावेज़</span></div>';
+    html += docRow('Passport Photo', 'फोटो', docs.fPhoto);
+    html += docRow('Signature', 'हस्ताक्षर', docs.fSignature);
+    html += docRow('Aadhar Front', 'आधार आगे', docs.fAadharFront);
+    html += docRow('Aadhar Back', 'आधार पीछे', docs.fAadharBack);
+
+    html += '<div class="rp-section-title">CERTIFICATES <span style="color:#67e8f9;">/ प्रमाणपत्र</span></div>';
+    html += certRow('Police Verification', 'पुलिस सत्यापन', docs.fPolice, v.dPolice);
+    html += certRow('Medical Certificate', 'मेडिकल प्रमाणपत्र', docs.fMedical, v.dMedical);
+    html += certRow('FSSAI License', 'एफएसएसएआई लाइसेंस', docs.fFssai, v.dFssai);
+
+    html += '<div class="rp-section-title">REPORT &amp; QR <span style="color:#67e8f9;">/ रिपोर्ट और क्यूआर</span></div>';
+    html += '<div class="rp-qr-box">' +
+      (v.qrCode ? '<img src="' + esc(v.qrCode) + '" alt="QR">' : '<div style="width:74px;height:74px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted);">NO QR</div>') +
+      '<div class="rp-qr-actions">' +
+        (v.pdfReport ? '<a class="rp-btn-view" href="' + esc(v.pdfReport) + '" target="_blank" rel="noopener">VIEW PDF REPORT</a>' : '<span class="missing" style="font-size:10.5px;">PDF NOT AVAILABLE</span>') +
+        (v.pdfReport ? '<a class="rp-btn-dl" href="' + esc(v.pdfReport) + '" target="_blank" rel="noopener">DOWNLOAD PDF</a>' : '') +
+      '</div>' +
+    '</div>';
+    if(v.submittedAt){
+      html += '<div style="margin-top:10px;font-size:9.5px;color:var(--muted);text-align:center;">LAST UPDATED: ' + esc(new Date(v.updatedAt || v.submittedAt).toLocaleString()) + '</div>';
+    }
+
+    rpBody.innerHTML = html;
+    reportOverlay.classList.add('show');
+  }
+
+  rpCloseBtn.addEventListener('click', function(){
+    reportOverlay.classList.remove('show');
+  });
+
+  loadVendors();
+</script>
+
+</body>
+</html>

@@ -68,6 +68,12 @@
     display:block;width:100%;white-space:normal;word-break:break-word;
   }
   .vc-sub{font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;}
+  .vc-avatar{
+    flex:0 0 auto;width:36px;height:36px;border-radius:50%;overflow:hidden;
+    background:var(--cyan-50);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  }
+  .vc-avatar img{width:100%;height:100%;object-fit:cover;}
+  .vc-avatar svg{width:17px;height:17px;stroke:var(--muted);}
   .vc-qr{flex:0 0 auto;width:38px;height:38px;border-radius:6px;border:1px solid var(--line);overflow:hidden;background:var(--cyan-50);}
   .vc-qr img{width:100%;height:100%;object-fit:contain;cursor:pointer;}
   .vc-qr.empty{display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--muted);text-align:center;}
@@ -75,6 +81,23 @@
   .vc-field{font-size:10.5px;}
   .vc-field .k{color:var(--muted);font-size:8.5px;text-transform:uppercase;display:block;margin-bottom:1px;}
   .vc-field .v{color:var(--navy-800);font-weight:600;word-break:break-word;}
+
+  .cert-block{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);}
+  .cert-item{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;
+    padding:6px 8px;border-radius:7px;margin-bottom:6px;background:var(--cyan-50);
+  }
+  .cert-item:last-child{margin-bottom:0;}
+  .cert-item.warn{background:#fff5e3;border:1px solid #f0ad2e;}
+  .cert-item.danger{background:#fdeaec;border:1px solid var(--danger);}
+  .cert-item .cn{font-size:9.5px;font-weight:700;color:var(--navy-800);flex:1 1 100%;text-transform:uppercase;}
+  .cert-item .cd{font-size:10px;color:var(--muted);}
+  .cert-item .cx{font-size:10px;font-weight:700;color:var(--good);}
+  .cert-item.warn .cx{color:#a86412;}
+  .cert-item.danger .cx{color:var(--danger);}
+  .cert-item .cmsg{flex:1 1 100%;font-size:9px;font-weight:600;margin-top:2px;}
+  .cert-item.warn .cmsg{color:#a86412;}
+  .cert-item.danger .cmsg{color:var(--danger);}
 
   /* ---- detail report overlay ---- */
   #reportOverlay{
@@ -219,6 +242,71 @@
     return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (size || 200);
   }
 
+  function maskAadhar(a){
+    const digits = String(a || '').replace(/\D/g, '');
+    if(digits.length < 4) return digits || '-';
+    return 'XXXX XXXX ' + digits.slice(-4);
+  }
+
+  function daysUntil(iso){
+    if(!iso) return null;
+    const d = new Date(iso + 'T00:00:00');
+    if(isNaN(d.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+
+  const CERT_DEFS = [
+    { fileKey: 'policeCertificate',  dateKey: 'policeValidUpto',  nameEn: 'Police Verification', nameHi: 'पुलिस सत्यापन' },
+    { fileKey: 'medicalCertificate', dateKey: 'medicalValidUpto', nameEn: 'Medical Certificate', nameHi: 'मेडिकल प्रमाणपत्र' },
+    { fileKey: 'fssaiLicense',       dateKey: 'fssaiValidUpto',   nameEn: 'FSSAI License',       nameHi: 'एफएसएसएआई लाइसेंस' }
+  ];
+
+  /** days -> {level:'ok'|'warn'|'danger', label, msgEn, msgHi} */
+  function certStatus(days, nameEn, nameHi){
+    if(days === null){
+      return { level: 'ok', label: '', msgEn: '', msgHi: '' };
+    }
+    if(days < 0){
+      return {
+        level: 'danger',
+        label: 'EXPIRED ' + Math.abs(days) + ' DAY' + (Math.abs(days) === 1 ? '' : 'S') + ' AGO',
+        msgEn: '⚠ ' + nameEn + ' has expired — renew immediately.',
+        msgHi: '⚠ ' + nameHi + ' समाप्त हो गया है — तुरंत नवीनीकरण करें।'
+      };
+    }
+    if(days <= 30){
+      return {
+        level: 'warn',
+        label: days === 0 ? 'EXPIRES TODAY' : 'EXPIRES IN ' + days + ' DAY' + (days === 1 ? '' : 'S'),
+        msgEn: '⚠ ' + nameEn + ' is expiring soon — renewal needed.',
+        msgHi: '⚠ ' + nameHi + ' जल्द समाप्त हो रहा है — नवीनीकरण आवश्यक है।'
+      };
+    }
+    return { level: 'ok', label: 'EXPIRES IN ' + days + ' DAYS', msgEn: '', msgHi: '' };
+  }
+
+  function certBlockHtml(v){
+    const rows = CERT_DEFS.map(def => {
+      const dateIso = v[def.dateKey];
+      const fileUrl = (v.documents || {})[def.fileKey];
+      if(!dateIso && !fileUrl) return ''; // certificate not uploaded at all — skip
+      const days = daysUntil(dateIso);
+      const st = certStatus(days, def.nameEn, def.nameHi);
+      const dateStr = dateIso ? formatDateDMY(dateIso) : 'NO DATE';
+      return (
+        '<div class="cert-item ' + (st.level === 'ok' ? '' : st.level) + '">' +
+          '<span class="cn">' + esc(def.nameEn) + ' / ' + esc(def.nameHi) + '</span>' +
+          '<span class="cd">VALID UPTO: ' + esc(dateStr) + '</span>' +
+          (st.label ? '<span class="cx">' + esc(st.label) + '</span>' : '') +
+          (st.msgEn ? '<span class="cmsg">' + esc(st.msgEn) + ' / ' + esc(st.msgHi) + '</span>' : '') +
+        '</div>'
+      );
+    }).filter(Boolean).join('');
+    return rows ? '<div class="cert-block">' + rows + '</div>' : '';
+  }
+
   function isExpired(iso){
     if(!iso) return false;
     const d = new Date(iso + 'T00:00:00');
@@ -276,10 +364,19 @@
       const qrCell = qrThumb
         ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(qrThumb) + '" alt="QR" onerror="this.parentElement.classList.add(\'empty\');this.parentElement.innerHTML=\'QR\';"></div>'
         : '<div class="vc-qr empty">NO QR</div>';
+      const photoUrl = (v.documents || {}).photo;
+      const photoThumb = photoUrl ? driveThumbUrl(photoUrl, 100) : null;
+      const personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-7 8-7s6.5 2.5 8 7"/></svg>';
+      const avatarCell = '<div class="vc-avatar">' +
+        (photoThumb
+          ? '<img src="' + esc(photoThumb) + '" alt="Photo" onerror="this.parentElement.innerHTML=\'' + personIcon.replace(/'/g, "\\'") + '\';">'
+          : personIcon) +
+        '</div>';
       return (
         '<div class="vendor-card">' +
           '<div class="vc-top">' +
             '<div class="vc-sr">' + sr + '</div>' +
+            avatarCell +
             '<div class="vc-name-wrap">' +
               '<button class="vc-name" data-aadhar="' + esc(v.aadhar) + '">' + esc(v.name || 'UNNAMED') + '</button>' +
               '<div class="vc-sub">ID: ' + esc(v.idNo || '-') + '</div>' +
@@ -287,10 +384,12 @@
             qrCell +
           '</div>' +
           '<div class="vc-grid">' +
-            '<div class="vc-field"><span class="k">Aadhar No.</span><span class="v">' + esc(v.aadhar || '-') + '</span></div>' +
+            '<div class="vc-field"><span class="k">Aadhar No.</span><span class="v">' + esc(maskAadhar(v.aadhar)) + '</span></div>' +
+            '<div class="vc-field"><span class="k">Mobile No.</span><span class="v">' + esc(v.mobile || '-') + '</span></div>' +
             '<div class="vc-field"><span class="k">Station</span><span class="v">' + esc(v.station || '-') + '</span></div>' +
-            '<div class="vc-field" style="grid-column:1/-1;"><span class="k">Catering Unit</span><span class="v">' + esc(v.unitName || '-') + '</span></div>' +
+            '<div class="vc-field"><span class="k">Catering Unit</span><span class="v">' + esc(v.unitName || '-') + '</span></div>' +
           '</div>' +
+          certBlockHtml(v) +
         '</div>'
       );
     }).join('');
@@ -334,13 +433,19 @@
 
   function certRow(labelEn, labelHi, url, dateIso){
     const dateStr = dateIso ? formatDateDMY(dateIso) : '';
+    const days = dateIso ? daysUntil(dateIso) : null;
+    const st = certStatus(days, labelEn, labelHi);
     let dateHtml = '<span class="missing">NO DATE</span>';
     if(dateStr){
-      const expired = isExpired(dateIso);
-      dateHtml = '<span class="' + (expired ? 'expired' : 'valid') + '">' + dateStr + (expired ? ' (EXPIRED)' : '') + '</span>';
+      const cls = st.level === 'ok' ? 'valid' : 'expired';
+      dateHtml = '<span class="' + cls + '">' + dateStr + (st.label ? ' — ' + st.label : '') + '</span>';
     }
-    return docRow(labelEn, labelHi, url) +
+    let out = docRow(labelEn, labelHi, url) +
       '<div class="rp-row"><span class="rk">Valid Upto <span style="color:#9db3c9;">/ मान्य तिथि</span></span><span class="rv">' + dateHtml + '</span></div>';
+    if(st.msgEn){
+      out += '<div class="rp-row"><span class="rv" style="flex:1 1 100%;text-align:left;color:' + (st.level === 'danger' ? 'var(--danger)' : '#a86412') + ';font-weight:700;">' + esc(st.msgEn) + ' / ' + esc(st.msgHi) + '</span></div>';
+    }
+    return out;
   }
 
   function plainRow(labelEn, labelHi, value){
@@ -368,15 +473,15 @@
     html += plainRow('ID No.', 'आईडी नंबर', v.idNo);
 
     html += '<div class="rp-section-title">IDENTITY DOCUMENTS <span style="color:#67e8f9;">/ पहचान दस्तावेज़</span></div>';
-    html += docRow('Passport Photo', 'फोटो', docs.fPhoto);
-    html += docRow('Signature', 'हस्ताक्षर', docs.fSignature);
-    html += docRow('Aadhar Front', 'आधार आगे', docs.fAadharFront);
-    html += docRow('Aadhar Back', 'आधार पीछे', docs.fAadharBack);
+    html += docRow('Passport Photo', 'फोटो', docs.photo);
+    html += docRow('Signature', 'हस्ताक्षर', docs.signature);
+    html += docRow('Aadhar Front', 'आधार आगे', docs.aadharFront);
+    html += docRow('Aadhar Back', 'आधार पीछे', docs.aadharBack);
 
     html += '<div class="rp-section-title">CERTIFICATES <span style="color:#67e8f9;">/ प्रमाणपत्र</span></div>';
-    html += certRow('Police Verification', 'पुलिस सत्यापन', docs.fPolice, v.dPolice);
-    html += certRow('Medical Certificate', 'मेडिकल प्रमाणपत्र', docs.fMedical, v.dMedical);
-    html += certRow('FSSAI License', 'एफएसएसएआई लाइसेंस', docs.fFssai, v.dFssai);
+    html += certRow('Police Verification', 'पुलिस सत्यापन', docs.policeCertificate, v.policeValidUpto);
+    html += certRow('Medical Certificate', 'मेडिकल प्रमाणपत्र', docs.medicalCertificate, v.medicalValidUpto);
+    html += certRow('FSSAI License', 'एफएसएसएआई लाइसेंस', docs.fssaiLicense, v.fssaiValidUpto);
 
     html += '<div class="rp-section-title">REPORT &amp; QR <span style="color:#67e8f9;">/ रिपोर्ट और क्यूआर</span></div>';
     const rpQrThumb = v.qrCode ? driveThumbUrl(v.qrCode, 300) : null;

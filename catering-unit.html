@@ -65,12 +65,16 @@
     text-transform:uppercase;text-align:left;padding:10px 10px;white-space:nowrap;
   }
   thead th.col-sr{width:52px;text-align:center;}
-  thead th.col-station{width:34%;}
+  thead th.col-name{width:62%;}
+  thead th.col-station{width:80px;}
   tbody td{
     padding:10px 10px;font-size:12.5px;color:var(--navy-800);border-top:1px solid var(--line);
     vertical-align:top;word-break:break-word;
   }
   tbody td.col-sr{text-align:center;font-weight:700;color:var(--navy-700);font-family:var(--font-display);}
+  tbody td.col-station{white-space:nowrap;}
+  .unit-name-main{display:block;font-weight:700;color:var(--navy-900);}
+  .unit-name-type{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px;}
   tbody tr{cursor:pointer;}
   tbody tr:nth-child(even){background:var(--cyan-50);}
   tbody tr:active{background:var(--cyan-100);}
@@ -154,7 +158,7 @@
         <thead>
           <tr>
             <th class="col-sr">SR. NO.</th>
-            <th>NAME OF CATERING UNIT</th>
+            <th class="col-name">NAME OF CATERING UNIT</th>
             <th class="col-station">STATION</th>
           </tr>
         </thead>
@@ -222,6 +226,18 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  function formatUnitName(name){
+    const raw = String(name == null ? '' : name);
+    if(!raw) return '-';
+    const idx = raw.indexOf('-');
+    if(idx === -1) return '<span class="unit-name-main">' + esc(raw.trim()) + '</span>';
+    const main = raw.slice(0, idx).trim();
+    const type = raw.slice(idx + 1).trim();
+    let html = '<span class="unit-name-main">' + esc(main || '-') + '</span>';
+    if(type) html += '<span class="unit-name-type">' + esc(type) + '</span>';
+    return html;
+  }
+
   function showToast(msg, isError){
     toast.textContent = msg;
     toast.classList.toggle('error', !!isError);
@@ -274,8 +290,8 @@
     tableBody.innerHTML = units.map(u =>
       '<tr data-sr="' + esc(u.srNo) + '">' +
         '<td class="col-sr">' + esc(u.srNo) + '</td>' +
-        '<td>' + esc(u.name || '-') + '</td>' +
-        '<td>' + esc(u.station || '-') + '</td>' +
+        '<td>' + formatUnitName(u.name) + '</td>' +
+        '<td class="col-station">' + esc(u.station || '-') + '</td>' +
       '</tr>'
     ).join('');
     tableBody.querySelectorAll('tr').forEach(row => {

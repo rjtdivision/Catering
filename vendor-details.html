@@ -386,7 +386,7 @@
           PASSPORT PHOTO <span class="hi">/ फोटो</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnPhoto">
-          <input type="file" id="fPhoto" name="fPhoto" accept="image/jpeg">
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/*">
           <span id="fLabelPhoto">TAP TO UPLOAD</span>
         </div>
         <a href="#" target="_blank" rel="noopener" id="fViewPhoto" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
@@ -398,7 +398,7 @@
           SIGNATURE <span class="hi">/ हस्ताक्षर</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnSign">
-          <input type="file" id="fSignature" name="fSignature" accept="image/jpeg">
+          <input type="file" id="fSignature" name="fSignature" accept="image/*">
           <span id="fLabelSign">TAP TO UPLOAD</span>
         </div>
         <a href="#" target="_blank" rel="noopener" id="fViewSign" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
@@ -844,6 +844,12 @@
     });
 
     showToast('EXISTING DETAILS LOADED — EDIT & SUBMIT TO UPDATE / मौजूदा विवरण लोड हो गया', false);
+
+    // Loading an existing record adds content (the "VIEW CURRENT FILE" links), which
+    // changes the form's height — recompute the fit-to-screen scale after this reflows,
+    // otherwise the Submit button can end up clipped below the visible area with no scroll.
+    setTimeout(fitToScreen, 50);
+    setTimeout(fitToScreen, 300);
   }
 
   dupLoadBtn.addEventListener('click', () => {
@@ -883,33 +889,54 @@
   // Kick off the live catering-unit fetch (falls back to built-in lists on failure).
   loadCateringUnits();
 
-  // Passport Photo & Signature: single upload button, JPG-only.
-  function isJpg(file){
-    return file && (file.type === 'image/jpeg' || /\.(jpe?g)$/i.test(file.name || ''));
-  }
-  function setupJpgOnlyInput(inputId, labelId, cardId){
+  // Passport Photo & Signature: single upload button. accept="image/*" so the device's
+  // camera option always shows (a narrow accept like "image/jpeg" hides Camera on many
+  // Android pickers). Whatever image format comes back (camera JPEG, gallery PNG/WEBP,
+  // etc.) is silently re-encoded to JPEG right here, so the PDF-embedding step later
+  // always has real JPEG bytes to work with regardless of source.
+  function setupPhotoInput(inputId, labelId, cardId){
     const input = document.getElementById(inputId);
     const label = document.getElementById(labelId);
     const card = document.getElementById(cardId);
-    input.addEventListener('change', () => {
-      if(input.files && input.files.length){
-        if(!isJpg(input.files[0])){
-          showToast('Only JPG photos are allowed / केवल JPG फोटो मान्य है', true);
+    input.addEventListener('change', async () => {
+      if(!(input.files && input.files.length)){
+        label.textContent = 'TAP TO UPLOAD';
+        card.classList.remove('has-file');
+        return;
+      }
+      const file = input.files[0];
+      if(!file.type.startsWith('image/')){
+        showToast('Only image files are allowed / केवल इमेज फाइल मान्य है', true);
+        input.value = '';
+        label.textContent = 'TAP TO UPLOAD';
+        card.classList.remove('has-file');
+        return;
+      }
+      let finalFile = file;
+      if(file.type !== 'image/jpeg'){
+        label.textContent = 'CONVERTING…';
+        try{
+          const dataUrl = await imageFileToJpeg(file, 1600, 0.9);
+          const bytes = dataUrlToBytes(dataUrl);
+          const newName = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+          finalFile = new File([bytes], newName, { type: 'image/jpeg' });
+          const dt = new DataTransfer();
+          dt.items.add(finalFile);
+          input.files = dt.files;
+        } catch(err){
+          showToast('Could not process this image — please try another one. / यह इमेज प्रोसेस नहीं हो सकी', true);
           input.value = '';
           label.textContent = 'TAP TO UPLOAD';
           card.classList.remove('has-file');
           return;
         }
-        label.textContent = input.files[0].name.length > 20 ? input.files[0].name.slice(0,17)+'...' : input.files[0].name;
-        card.classList.add('has-file');
-      } else {
-        label.textContent = 'TAP TO UPLOAD';
-        card.classList.remove('has-file');
       }
+      label.textContent = finalFile.name.length > 20 ? finalFile.name.slice(0,17)+'...' : finalFile.name;
+      card.classList.add('has-file');
     });
   }
-  setupJpgOnlyInput('fPhoto','fLabelPhoto','fileBtnPhoto');
-  setupJpgOnlyInput('fSignature','fLabelSign','fileBtnSign');
+  setupPhotoInput('fPhoto','fLabelPhoto','fileBtnPhoto');
+  setupPhotoInput('fSignature','fLabelSign','fileBtnSign');
 
   // File input labels
   [
@@ -1216,6 +1243,25 @@
       img.onerror = reject;
       img.src = url;
     });
+  }
+
+  // Re-encodes any raster image (PNG, WEBP, camera JPEG, etc.) into a JPEG data URL,
+  // downscaling only if larger than maxDim on its longest side. No cropping — full
+  // image is kept, just flattened onto a white background (in case of transparency).
+  async function imageFileToJpeg(file, maxDim, quality){
+    const img = await loadImageFromFile(file);
+    let w = img.width, h = img.height;
+    if(Math.max(w, h) > maxDim){
+      const scale = maxDim / Math.max(w, h);
+      w = Math.round(w * scale); h = Math.round(h * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', quality || 0.9);
   }
 
   // Cover-crop: normalizes any uploaded image into a fixed pixel box (crops to fill, no distortion).

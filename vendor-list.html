@@ -204,6 +204,21 @@
     return p[2] + '/' + p[1] + '/' + p[0];
   }
 
+  // Google Drive "view" links (…/file/d/FILE_ID/view or ?id=FILE_ID) cannot be
+  // used directly as <img src>. Convert to Drive's public thumbnail endpoint instead.
+  function driveFileId(url){
+    if(!url) return null;
+    let m = /\/d\/([a-zA-Z0-9_-]+)/.exec(url);
+    if(m) return m[1];
+    m = /[?&]id=([a-zA-Z0-9_-]+)/.exec(url);
+    return m ? m[1] : null;
+  }
+  function driveThumbUrl(url, size){
+    const id = driveFileId(url);
+    if(!id) return null;
+    return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (size || 200);
+  }
+
   function isExpired(iso){
     if(!iso) return false;
     const d = new Date(iso + 'T00:00:00');
@@ -257,8 +272,9 @@
     countLine.textContent = vendors.length + ' VENDOR' + (vendors.length === 1 ? '' : 'S') + ' FOUND';
     cardsEl.innerHTML = vendors.map((v, i) => {
       const sr = i + 1;
-      const qrCell = v.qrCode
-        ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(v.qrCode) + '" alt="QR"></div>'
+      const qrThumb = v.qrCode ? driveThumbUrl(v.qrCode, 120) : null;
+      const qrCell = qrThumb
+        ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(qrThumb) + '" alt="QR" onerror="this.parentElement.classList.add(\'empty\');this.parentElement.innerHTML=\'QR\';"></div>'
         : '<div class="vc-qr empty">NO QR</div>';
       return (
         '<div class="vendor-card">' +
@@ -363,8 +379,9 @@
     html += certRow('FSSAI License', 'एफएसएसएआई लाइसेंस', docs.fFssai, v.dFssai);
 
     html += '<div class="rp-section-title">REPORT &amp; QR <span style="color:#67e8f9;">/ रिपोर्ट और क्यूआर</span></div>';
+    const rpQrThumb = v.qrCode ? driveThumbUrl(v.qrCode, 300) : null;
     html += '<div class="rp-qr-box">' +
-      (v.qrCode ? '<img src="' + esc(v.qrCode) + '" alt="QR">' : '<div style="width:74px;height:74px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted);">NO QR</div>') +
+      (rpQrThumb ? '<img src="' + esc(rpQrThumb) + '" alt="QR" onerror="this.outerHTML=\'<div style=&quot;width:74px;height:74px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted);&quot;>QR N/A</div>\';">' : '<div style="width:74px;height:74px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--muted);">NO QR</div>') +
       '<div class="rp-qr-actions">' +
         (v.pdfReport ? '<a class="rp-btn-view" href="' + esc(v.pdfReport) + '" target="_blank" rel="noopener">VIEW PDF REPORT</a>' : '<span class="missing" style="font-size:10.5px;">PDF NOT AVAILABLE</span>') +
         (v.pdfReport ? '<a class="rp-btn-dl" href="' + esc(v.pdfReport) + '" target="_blank" rel="noopener">DOWNLOAD PDF</a>' : '') +

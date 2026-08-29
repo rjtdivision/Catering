@@ -326,8 +326,8 @@
     <div class="row2">
       <div class="field">
         <label for="station">STATION <span class="hi">/ स्टेशन</span> <span class="req">*</span></label>
-        <select id="station" name="station" required>
-          <option value="" disabled selected>SELECT STATION</option>
+        <select id="station" name="station" required disabled>
+          <option value="" disabled selected>LOADING STATIONS…</option>
         </select>
       </div>
       <div class="field">
@@ -344,8 +344,9 @@
 
     <div class="field">
       <label for="unitName">NAME OF UNIT <span class="hi">/ यूनिट का नाम</span> <span class="req">*</span></label>
-      <input list="unitOptions" id="unitName" name="unitName" placeholder="SELECT STATION TO SEARCH UNITS" autocomplete="off" disabled>
-      <datalist id="unitOptions"></datalist>
+      <select id="unitName" name="unitName" required disabled>
+        <option value="" disabled selected>SELECT STATION FIRST</option>
+      </select>
     </div>
 
     <div class="row2">
@@ -581,10 +582,10 @@
   // locally and will NOT be saved to Google Sheet / Drive.
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN59TMwl1JT58yQn1pPexSLO2rJscqITjUA-wFkwVVaEsYTyDDsgcM7hwZuGvDvSu5hQ/exec';
 
-  const STATIONS = ["OKHA","MTHP","DWK","BHTA","KMBL","JAM","HAPA","RJT","BKNG","MVI","WKR","SUNR","PDH"];
-
-  // Placeholder unit data per station — will be replaced by live Google Sheet data via backend.
-  const UNITS_BY_STATION = {
+  // Fallback data used ONLY if the "catering_unit" sheet can't be reached (e.g. offline,
+  // backend URL not configured) — keeps the form usable rather than fully blocked.
+  const FALLBACK_STATIONS = ["OKHA","MTHP","DWK","BHTA","KMBL","JAM","HAPA","RJT","BKNG","MVI","WKR","SUNR","PDH"];
+  const FALLBACK_UNITS_BY_STATION = {
     OKHA:["Okha Refreshment Room","Okha Static Catering Unit"],
     MTHP:["Maliya Miyana Tea Point"],
     DWK:["Dwarka Refreshment Stall","Dwarka Static Unit"],
@@ -600,15 +601,98 @@
     PDH:["Paddhari Tea Stall"]
   };
 
-  const stationSelect = document.getElementById('station');
-  STATIONS.forEach(code => {
-    const opt = document.createElement('option');
-    opt.value = code; opt.textContent = code;
-    stationSelect.appendChild(opt);
-  });
+  // ================= STATION / NAME OF UNIT — live from the "catering_unit" sheet =================
+  // Both dropdowns are built from doGet_listCateringUnits() (?catUnits=1), the same list
+  // shown/edited on catering-unit.html, instead of the old hardcoded lists above.
+  let CATERING_UNITS = [];       // raw [{srNo, name, station}, ...] from the sheet
+  let UNITS_BY_STATION = {};     // normalized-station-key -> [unit name, ...]
+  let stationKeyToLabel = {};    // normalized-station-key -> display label (as stored in sheet)
 
+  function normKey(s){ return String(s || '').trim().toUpperCase(); }
+
+  function rebuildUnitLookups(){
+    UNITS_BY_STATION = {};
+    stationKeyToLabel = {};
+    CATERING_UNITS.forEach(u => {
+      const key = normKey(u.station);
+      if(!key) return;
+      if(!stationKeyToLabel[key]) stationKeyToLabel[key] = String(u.station).trim();
+      if(!UNITS_BY_STATION[key]) UNITS_BY_STATION[key] = [];
+      if(u.name && !UNITS_BY_STATION[key].includes(u.name)) UNITS_BY_STATION[key].push(u.name);
+    });
+    Object.keys(UNITS_BY_STATION).forEach(k => UNITS_BY_STATION[k].sort((a,b) => a.localeCompare(b)));
+  }
+
+  function populateStationSelect(){
+    const keys = Object.keys(stationKeyToLabel).sort((a,b) => stationKeyToLabel[a].localeCompare(stationKeyToLabel[b]));
+    stationSelect.innerHTML = '<option value="" disabled selected>SELECT STATION</option>';
+    keys.forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = stationKeyToLabel[key];
+      opt.textContent = stationKeyToLabel[key].toUpperCase();
+      stationSelect.appendChild(opt);
+    });
+    stationSelect.disabled = false;
+  }
+
+  async function loadCateringUnits(){
+    try{
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) throw new Error('backend not configured');
+      const res = await fetch(APPS_SCRIPT_URL + '?catUnits=1');
+      const data = await res.json();
+      if(data && data.success && Array.isArray(data.units) && data.units.length){
+        CATERING_UNITS = data.units;
+      } else {
+        throw new Error((data && data.error) || 'no units returned');
+      }
+    } catch(err){
+      // Fall back to the built-in lists so the form still works.
+      CATERING_UNITS = [];
+      FALLBACK_STATIONS.forEach(code => {
+        (FALLBACK_UNITS_BY_STATION[code] || []).forEach(name => {
+          CATERING_UNITS.push({ station: code, name: name });
+        });
+      });
+    }
+    rebuildUnitLookups();
+    populateStationSelect();
+    // If a station was already chosen (e.g. an edit was pending), refresh its unit options.
+    if(stationSelect.value) refreshUnitOptionsForStation(stationSelect.value, unitInput.value);
+  }
+
+  function refreshUnitOptionsForStation(stationValue, preserveValue){
+    const key = normKey(stationValue);
+    const units = UNITS_BY_STATION[key] || [];
+    const preserve = preserveValue || '';
+    unitInput.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = units.length ? 'SELECT UNIT' : 'NO UNITS FOUND FOR THIS STATION';
+    unitInput.appendChild(placeholder);
+    units.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      unitInput.appendChild(opt);
+    });
+    // If editing a record whose saved unit name isn't in the current list
+    // (renamed/removed since), keep it selectable rather than silently losing it.
+    if(preserve && !units.includes(preserve)){
+      const extra = document.createElement('option');
+      extra.value = preserve; extra.textContent = preserve + ' (SAVED VALUE)';
+      unitInput.appendChild(extra);
+    }
+    unitInput.disabled = false;
+    if(preserve){
+      unitInput.value = preserve;
+    } else {
+      unitInput.value = '';
+    }
+  }
+
+  const stationSelect = document.getElementById('station');
   const unitInput = document.getElementById('unitName');
-  const unitList = document.getElementById('unitOptions');
   const idNo = document.getElementById('idNo');
 
   // Aadhar must always be exactly digits — no spaces/dashes — so duplicate-check matching never drifts.
@@ -705,9 +789,16 @@
     document.getElementById('name').value = record.name || '';
     if(record.station){
       setSelectValueCI(stationSelect, record.station);
-      stationSelect.dispatchEvent(new Event('change'));
+      if(!stationSelect.value){
+        // Saved station no longer exists in the current catering_unit list — keep it
+        // selectable rather than silently dropping it.
+        const extraStation = document.createElement('option');
+        extraStation.value = record.station; extraStation.textContent = record.station.toUpperCase() + ' (SAVED VALUE)';
+        stationSelect.appendChild(extraStation);
+        stationSelect.value = record.station;
+      }
+      refreshUnitOptionsForStation(stationSelect.value, record.unitName || '');
     }
-    document.getElementById('unitName').value = record.unitName || '';
     setSelectValueCI(document.getElementById('designation'), record.designation);
     document.getElementById('mobile').value = record.mobile || '';
     setSelectValueCI(document.getElementById('bloodGroup'), record.bloodGroup);
@@ -785,19 +876,12 @@
   }
 
   stationSelect.addEventListener('change', () => {
-    const station = stationSelect.value;
-    unitList.innerHTML = '';
-    const units = UNITS_BY_STATION[station] || [];
-    units.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u;
-      unitList.appendChild(opt);
-    });
-    unitInput.disabled = false;
-    unitInput.value = '';
-    unitInput.placeholder = units.length ? 'SEARCH OR SELECT UNIT' : 'NO UNITS FOUND — TYPE UNIT NAME';
+    refreshUnitOptionsForStation(stationSelect.value, '');
     updateIdNo();
   });
+
+  // Kick off the live catering-unit fetch (falls back to built-in lists on failure).
+  loadCateringUnits();
 
   // Passport Photo & Signature: single upload button, JPG-only.
   function isJpg(file){
@@ -1456,8 +1540,7 @@
   function resetFormAfterSubmit(){
     form.reset();
     unitInput.disabled = true;
-    unitInput.placeholder = 'SELECT STATION TO SEARCH UNITS';
-    unitList.innerHTML = '';
+    unitInput.innerHTML = '<option value="" disabled selected>SELECT STATION FIRST</option>';
     document.querySelectorAll('.file-btn').forEach(c => c.classList.remove('has-file'));
     document.querySelectorAll('[id^="fLabel"]').forEach(l => { l.innerHTML = 'TAP TO UPLOAD'; });
     document.querySelectorAll('[id^="fView"]').forEach(a => { a.style.display = 'none'; a.href = '#'; });

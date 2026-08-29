@@ -9,36 +9,340 @@
 <style>
   :root{
     --navy-950:#061a33;--navy-900:#0b2545;--navy-800:#123a6b;--navy-700:#1a4a86;
-    --cyan-500:#06b6d4;--cyan-400:#22d3ee;--cyan-100:#e3fbff;--cyan-50:#f0fdff;
-    --muted:#5a7291;--font-display:'Poppins',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
+    --cyan-500:#06b6d4;--cyan-400:#22d3ee;--cyan-300:#67e8f9;--cyan-100:#e3fbff;--cyan-50:#f0fdff;
+    --line:#d7e8f5;--ink:#0b2545;--muted:#5a7291;--danger:#e0455a;--good:#1a9c5c;
+    --font-display:'Poppins',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:var(--cyan-50);font-family:var(--font-body);}
-  .wrap{
-    height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:32px 26px;
+  html,body{margin:0;padding:0;height:100%;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);}
+  body{-webkit-tap-highlight-color:transparent;}
+
+  #page{display:flex;flex-direction:column;height:100%;}
+
+  /* ---- toolbar ---- */
+  .toolbar{
+    flex:0 0 auto;padding:10px 12px 8px;background:var(--cyan-50);
+    position:sticky;top:0;z-index:5;
   }
-  .icon-badge{
-    width:64px;height:64px;border-radius:18px;margin-bottom:16px;
-    background:linear-gradient(135deg,var(--navy-950),var(--navy-700));
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 6px 16px rgba(11,37,69,0.25);
+  .toolbar-row{display:flex;gap:8px;align-items:center;}
+  .search-wrap{position:relative;flex:1 1 auto;}
+  .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);}
+  #searchInput{
+    width:100%;padding:8px 10px 8px 28px;font-size:12px;font-family:var(--font-body);
+    border:1.5px solid var(--navy-700);border-radius:9px;outline:none;color:var(--navy-800);background:#fff;
   }
-  .icon-badge svg{width:30px;height:30px;stroke:var(--cyan-300,#67e8f9);fill:none;stroke-width:1.8;}
-  h2{font-family:var(--font-display);font-size:17px;color:var(--navy-800);margin:0 0 8px;}
-  p{font-size:13px;color:var(--muted);margin:0;max-width:260px;line-height:1.5;}
-  .tag{
-    margin-top:16px;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;
-    color:var(--cyan-500);background:var(--cyan-100);padding:5px 12px;border-radius:20px;
+  #searchInput:focus{border-color:var(--cyan-500);box-shadow:0 0 0 3px rgba(6,182,212,0.15);}
+  .icon-btn{
+    flex:0 0 auto;width:34px;height:34px;border-radius:9px;border:1.5px solid var(--navy-700);
+    background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
+  .icon-btn svg{width:16px;height:16px;stroke:var(--navy-800);}
+  .icon-btn.spinning svg{animation:spin .8s linear infinite;}
+  .icon-btn.add-btn{background:linear-gradient(135deg,var(--navy-900),var(--navy-700));border-color:var(--navy-700);}
+  .icon-btn.add-btn svg{stroke:#fff;}
+  .count-line{font-size:10px;color:var(--muted);margin:6px 2px 0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- list body / table ---- */
+  .list-body{flex:1 1 auto;overflow-y:auto;padding:2px 10px 20px;}
+
+  .state-box{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:50px 20px;color:var(--muted);gap:10px;
+  }
+  .state-box svg{width:38px;height:38px;stroke:var(--cyan-500);}
+  .state-box p{font-size:12px;margin:0;max-width:240px;line-height:1.5;}
+  .spinner{width:24px;height:24px;border:3px solid rgba(6,182,212,0.2);border-top-color:var(--cyan-500);border-radius:50%;animation:spin .8s linear infinite;}
+
+  .table-card{
+    background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(11,37,69,0.06);
+  }
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    position:sticky;top:0;background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 60%,var(--navy-700) 100%);
+    color:#fff;font-family:var(--font-display);font-size:10.5px;font-weight:600;letter-spacing:0.3px;
+    text-transform:uppercase;text-align:left;padding:10px 10px;white-space:nowrap;
+  }
+  thead th.col-sr{width:52px;text-align:center;}
+  thead th.col-station{width:34%;}
+  tbody td{
+    padding:10px 10px;font-size:12.5px;color:var(--navy-800);border-top:1px solid var(--line);
+    vertical-align:top;word-break:break-word;
+  }
+  tbody td.col-sr{text-align:center;font-weight:700;color:var(--navy-700);font-family:var(--font-display);}
+  tbody tr:nth-child(even){background:var(--cyan-50);}
+  tbody tr:active{background:var(--cyan-100);}
+
+  /* ---- add-unit overlay ---- */
+  #addOverlay{
+    position:fixed;inset:0;background:rgba(6,26,51,0.55);display:none;align-items:center;justify-content:center;
+    z-index:200;padding:20px;
+  }
+  #addOverlay.show{display:flex;}
+  .add-card{
+    width:100%;max-width:360px;background:#fff;border-radius:14px;overflow:hidden;
+    box-shadow:0 12px 32px rgba(0,0,0,0.3);
+  }
+  .add-head{
+    background:linear-gradient(135deg,var(--navy-950) 0%,var(--navy-800) 55%,var(--navy-700) 100%);
+    color:#fff;padding:14px 16px;border-bottom:2px solid var(--cyan-400);
+  }
+  .add-head h3{margin:0;font-family:var(--font-display);font-size:14.5px;font-weight:600;}
+  .add-head p{margin:2px 0 0;font-size:10.5px;color:var(--cyan-300);}
+  .add-body{padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .field label{
+    display:block;font-size:10.5px;font-weight:700;color:var(--navy-800);text-transform:uppercase;
+    letter-spacing:0.3px;margin-bottom:5px;
+  }
+  .field input{
+    width:100%;padding:10px 11px;font-size:13px;font-family:var(--font-body);
+    border:1.5px solid var(--line);border-radius:9px;outline:none;color:var(--navy-900);background:#fff;
+  }
+  .field input:focus{border-color:var(--cyan-500);box-shadow:0 0 0 3px rgba(6,182,212,0.15);}
+  .field .err{font-size:10.5px;color:var(--danger);margin-top:4px;display:none;}
+  .field.has-err input{border-color:var(--danger);}
+  .field.has-err .err{display:block;}
+  .add-actions{display:flex;gap:10px;padding:4px 16px 16px;}
+  .add-actions button{
+    flex:1 1 0;font-family:var(--font-display);font-size:12.5px;font-weight:600;
+    padding:11px 10px;border-radius:9px;border:none;cursor:pointer;
+  }
+  #cancelBtn{background:var(--cyan-50);color:var(--navy-800);border:1.5px solid var(--line);}
+  #saveBtn{background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));color:var(--navy-950);}
+  #saveBtn:disabled{opacity:0.6;}
+
+  #toast{
+    position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);
+    background:var(--navy-950);color:#fff;padding:11px 18px;border-radius:10px;
+    font-size:12.5px;font-weight:500;box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;z-index:300;
+    max-width:88%;text-align:center;border:1px solid rgba(103,232,249,0.3);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+  #toast.error{border-color:rgba(224,69,90,0.5);}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="icon-badge"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
-    <h2>Catering Unit</h2>
-    <p>Overview of all catering units under Rajkot Division will appear here.</p>
-    <div class="tag">Coming soon</div>
+
+<div id="page">
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="SEARCH NAME / STATION">
+      </div>
+      <button class="icon-btn" id="refreshBtn" title="Refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+      <button class="icon-btn add-btn" id="addBtn" title="Add Catering Unit">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div class="count-line" id="countLine"></div>
   </div>
+
+  <div class="list-body" id="listBody">
+    <div class="state-box" id="stateBox">
+      <div class="spinner"></div>
+      <p>LOADING CATERING UNITS&hellip;</p>
+    </div>
+    <div class="table-card" id="tableCard" style="display:none;">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-sr">SR. NO.</th>
+            <th>NAME OF CATERING UNIT</th>
+            <th class="col-station">STATION</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Add Catering Unit Overlay ================= -->
+<div id="addOverlay">
+  <div class="add-card">
+    <div class="add-head">
+      <h3>Add Catering Unit</h3>
+      <p>New record will be saved to the sheet</p>
+    </div>
+    <div class="add-body">
+      <div class="field" id="nameField">
+        <label>Name of Catering Unit</label>
+        <input id="nameInput" type="text" placeholder="e.g. Tea &amp; Refreshment Stall" maxlength="120">
+        <div class="err">Please enter the catering unit name.</div>
+      </div>
+      <div class="field" id="stationField">
+        <label>Station</label>
+        <input id="stationInput" type="text" placeholder="e.g. Jamnagar" maxlength="80">
+        <div class="err">Please enter the station.</div>
+      </div>
+    </div>
+    <div class="add-actions">
+      <button id="cancelBtn">Cancel</button>
+      <button id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // Same deployed Google Apps Script Web App URL used by vendor-details.html / vendor-list.html
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN59TMwl1JT58yQn1pPexSLO2rJscqITjUA-wFkwVVaEsYTyDDsgcM7hwZuGvDvSu5hQ/exec';
+
+  const stateBox = document.getElementById('stateBox');
+  const tableCard = document.getElementById('tableCard');
+  const tableBody = document.getElementById('tableBody');
+  const countLine = document.getElementById('countLine');
+  const searchInput = document.getElementById('searchInput');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const addBtn = document.getElementById('addBtn');
+  const toast = document.getElementById('toast');
+
+  const addOverlay = document.getElementById('addOverlay');
+  const nameField = document.getElementById('nameField');
+  const stationField = document.getElementById('stationField');
+  const nameInput = document.getElementById('nameInput');
+  const stationInput = document.getElementById('stationInput');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const saveBtn = document.getElementById('saveBtn');
+
+  let allUnits = [];
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showToast(msg, isError){
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  function setState(kind, message){
+    if(kind === 'hidden'){ stateBox.style.display = 'none'; tableCard.style.display = 'block'; return; }
+    stateBox.style.display = 'flex';
+    tableCard.style.display = 'none';
+    let icon = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+    let spinner = kind === 'loading' ? '<div class="spinner"></div>' : icon;
+    stateBox.innerHTML = spinner + '<p>' + message + '</p>';
+  }
+
+  async function loadUnits(){
+    refreshBtn.classList.add('spinning');
+    setState('loading', 'LOADING CATERING UNITS&hellip;');
+    countLine.textContent = '';
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1){
+      setState('error', 'BACKEND URL NOT CONFIGURED.');
+      refreshBtn.classList.remove('spinning');
+      return;
+    }
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?catUnits=1');
+      const data = await res.json();
+      if(data && data.success){
+        allUnits = data.units || [];
+        renderTable(allUnits);
+      } else {
+        setState('error', 'COULD NOT LOAD CATERING UNITS: ' + (data && data.error ? esc(data.error) : 'Unknown error'));
+      }
+    } catch(err){
+      setState('error', 'NETWORK ERROR WHILE LOADING CATERING UNITS.');
+    }
+    refreshBtn.classList.remove('spinning');
+  }
+
+  function renderTable(units){
+    if(!units.length){
+      setState('empty', 'NO CATERING UNITS SAVED YET. TAP + TO ADD ONE.');
+      tableBody.innerHTML = '';
+      countLine.textContent = '';
+      return;
+    }
+    setState('hidden', '');
+    countLine.textContent = units.length + ' RECORD' + (units.length === 1 ? '' : 'S') + ' FOUND';
+    tableBody.innerHTML = units.map(u =>
+      '<tr>' +
+        '<td class="col-sr">' + esc(u.srNo) + '</td>' +
+        '<td>' + esc(u.name || '-') + '</td>' +
+        '<td>' + esc(u.station || '-') + '</td>' +
+      '</tr>'
+    ).join('');
+  }
+
+  function applyFilter(){
+    const q = searchInput.value.trim().toUpperCase();
+    if(!q){ renderTable(allUnits); return; }
+    const filtered = allUnits.filter(u =>
+      String(u.name || '').toUpperCase().includes(q) ||
+      String(u.station || '').toUpperCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+
+  searchInput.addEventListener('input', applyFilter);
+  refreshBtn.addEventListener('click', loadUnits);
+
+  // ---- Add Catering Unit modal ----
+  function openAddOverlay(){
+    nameInput.value = '';
+    stationInput.value = '';
+    nameField.classList.remove('has-err');
+    stationField.classList.remove('has-err');
+    addOverlay.classList.add('show');
+    setTimeout(() => nameInput.focus(), 50);
+  }
+  function closeAddOverlay(){
+    addOverlay.classList.remove('show');
+  }
+
+  addBtn.addEventListener('click', openAddOverlay);
+  cancelBtn.addEventListener('click', closeAddOverlay);
+  addOverlay.addEventListener('click', function(e){
+    if(e.target === addOverlay) closeAddOverlay();
+  });
+
+  async function saveUnit(){
+    const name = nameInput.value.trim();
+    const station = stationInput.value.trim();
+    let hasErr = false;
+    nameField.classList.toggle('has-err', !name);
+    stationField.classList.toggle('has-err', !station);
+    if(!name || !station) return;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'SAVING…';
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight against Apps Script
+        body: JSON.stringify({ action: 'addCateringUnit', name: name, station: station })
+      });
+      const data = await res.json();
+      if(data && data.success){
+        allUnits.push(data.unit);
+        applyFilter();
+        closeAddOverlay();
+        showToast('CATERING UNIT SAVED.');
+      } else {
+        showToast('COULD NOT SAVE: ' + (data && data.error ? data.error : 'Unknown error'), true);
+      }
+    } catch(err){
+      showToast('NETWORK ERROR WHILE SAVING.', true);
+    }
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
+
+  saveBtn.addEventListener('click', saveUnit);
+
+  loadUnits();
+</script>
+
 </body>
 </html>

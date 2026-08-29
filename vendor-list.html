@@ -52,52 +52,71 @@
   .spinner{width:24px;height:24px;border:3px solid rgba(6,182,212,0.2);border-top-color:var(--cyan-500);border-radius:50%;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
+  /* ---- ID-card style vendor card (professional redesign) ---- */
   .vendor-card{
-    background:#fff;border:1px solid var(--line);border-radius:11px;
-    padding:10px 11px;margin-bottom:8px;box-shadow:0 2px 6px rgba(11,37,69,0.05);
+    position:relative;background:#fff;border:1.6px solid var(--navy-700);border-radius:14px;
+    padding:0;margin:16px 1px 16px;overflow:hidden;box-shadow:0 3px 12px rgba(11,37,69,0.10);
+    cursor:pointer;transition:box-shadow .15s ease;
   }
-  .vc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+  .vendor-card:active{box-shadow:0 1px 4px rgba(11,37,69,0.12);}
   .vc-sr{
-    flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:var(--navy-800);color:#fff;
-    font-size:10px;font-weight:700;font-family:var(--font-display);display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;align-self:flex-start;margin-top:2px;width:24px;height:24px;border-radius:7px;background:var(--navy-800);color:#fff;
+    font-size:11px;font-weight:700;font-family:var(--font-display);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);
   }
-  .vc-name-wrap{flex:1 1 auto;min-width:0;}
-  .vc-name{
-    background:none;border:none;padding:0;text-align:left;font-family:var(--font-display);
-    font-size:13px;font-weight:600;color:var(--cyan-500);text-decoration:underline;cursor:pointer;
-    display:block;width:100%;white-space:normal;word-break:break-word;
-  }
-  .vc-sub{font-size:9.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;}
+  .vc-top{display:flex;align-items:stretch;gap:10px;padding:14px 12px 12px;}
   .vc-avatar{
-    flex:0 0 auto;width:36px;height:36px;border-radius:50%;overflow:hidden;
-    background:var(--cyan-50);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;width:clamp(70px,22vw,92px);height:clamp(70px,22vw,92px);border-radius:14px;overflow:hidden;
+    background:var(--cyan-50);border:1.6px solid var(--navy-700);display:flex;align-items:center;justify-content:center;
   }
-  .vc-avatar img{width:100%;height:100%;object-fit:cover;}
-  .vc-avatar svg{width:17px;height:17px;stroke:var(--muted);}
-  .vc-qr{flex:0 0 auto;width:38px;height:38px;border-radius:6px;border:1px solid var(--line);overflow:hidden;background:var(--cyan-50);}
+  .vc-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .vc-avatar svg{width:30px;height:30px;stroke:var(--muted);}
+  .vc-avatar .ph-label{font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:var(--muted);font-family:var(--font-display);}
+  .vc-info{
+    flex:1 1 auto;min-width:0;padding:2px 14px;display:flex;flex-direction:column;justify-content:center;gap:7px;
+    border-left:1px solid var(--line);border-right:1px solid var(--line);
+  }
+  .vc-name-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px;}
+  .vc-name-btn{
+    background:none;border:none;padding:0;font-family:var(--font-display);cursor:pointer;text-align:left;
+    font-size:clamp(15px,4.2vw,18px);font-weight:700;color:var(--navy-900);letter-spacing:0.1px;line-height:1.2;
+  }
+  .vc-badge{
+    font-size:clamp(9.5px,2.6vw,11px);font-weight:700;color:var(--cyan-500);background:var(--cyan-50);
+    border:1px solid var(--cyan-100);padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap;
+  }
+  .vc-station{font-size:clamp(10.5px,2.8vw,12px);color:var(--muted);font-weight:500;}
+  .vc-row{font-size:clamp(11.5px,3vw,13px);line-height:1.55;color:var(--navy-800);word-break:break-word;}
+  .vc-row .lbl{font-weight:700;color:var(--muted);font-size:0.92em;text-transform:uppercase;letter-spacing:0.2px;margin-right:2px;}
+  .vc-qr{
+    flex:0 0 auto;width:clamp(66px,20vw,86px);height:clamp(66px,20vw,86px);margin-left:2px;border-radius:10px;
+    border:1.6px solid var(--navy-700);overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;align-self:center;
+  }
   .vc-qr img{width:100%;height:100%;object-fit:contain;cursor:pointer;}
-  .vc-qr.empty{display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--muted);text-align:center;}
-  .vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:8px;}
-  .vc-field{font-size:10.5px;}
-  .vc-field .k{color:var(--muted);font-size:8.5px;text-transform:uppercase;display:block;margin-bottom:1px;}
-  .vc-field .v{color:var(--navy-800);font-weight:600;word-break:break-word;}
+  .vc-qr span{font-size:8.5px;font-weight:700;color:var(--navy-700);text-align:center;font-family:var(--font-display);padding:0 4px;}
 
-  .cert-block{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);}
-  .cert-item{
-    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;
-    padding:6px 8px;border-radius:7px;margin-bottom:6px;background:var(--cyan-50);
+  .vc-bottom{
+    display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));
+    gap:1px;background:var(--navy-700);border-top:1.6px solid var(--navy-700);
   }
-  .cert-item:last-child{margin-bottom:0;}
-  .cert-item.warn{background:#fff5e3;border:1px solid #f0ad2e;}
-  .cert-item.danger{background:#fdeaec;border:1px solid var(--danger);}
-  .cert-item .cn{font-size:9.5px;font-weight:700;color:var(--navy-800);flex:1 1 100%;text-transform:uppercase;}
-  .cert-item .cd{font-size:10px;color:var(--muted);}
-  .cert-item .cx{font-size:10px;font-weight:700;color:var(--good);}
-  .cert-item.warn .cx{color:#a86412;}
-  .cert-item.danger .cx{color:var(--danger);}
-  .cert-item .cmsg{flex:1 1 100%;font-size:9px;font-weight:600;margin-top:2px;}
-  .cert-item.warn .cmsg{color:#a86412;}
-  .cert-item.danger .cmsg{color:var(--danger);}
+  .vc-cell{background:#fff;padding:8px 6px;text-align:center;min-width:0;}
+  .vc-cell-title{
+    font-size:clamp(8.5px,2.3vw,10px);font-weight:700;color:var(--navy-900);letter-spacing:0.2px;
+    font-family:var(--font-display);text-transform:uppercase;
+  }
+  .vc-cell-sub{font-size:clamp(9px,2.4vw,11px);color:var(--navy-800);margin-top:3px;line-height:1.35;font-weight:600;}
+  .vc-cell.ok{background:#e6f7ec;}
+  .vc-cell.ok .vc-cell-sub{color:#137a45;}
+  .vc-cell.warn{background:#fdeceb;}
+  .vc-cell.warn .vc-cell-sub{color:#c02f3f;}
+  .vc-cell.missing{background:#f2f4f7;}
+  .vc-cell.missing .vc-cell-sub{color:var(--muted);font-weight:500;}
+
+  @media (max-width:380px){
+    .vc-bottom{grid-template-columns:1fr;}
+    .vc-avatar{width:64px;height:64px;}
+    .vc-qr{width:60px;height:60px;}
+  }
 
   /* ---- detail report overlay ---- */
   #reportOverlay{
@@ -209,6 +228,21 @@
 
   let allVendors = [];
 
+  // Fallback person icon shown when a vendor photo is missing or fails to load.
+  // Rendered via a global handler (instead of inline HTML in the onerror attribute)
+  // so the SVG's own double quotes don't clash with / break out of the attribute.
+  const PERSON_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-7 8-7s6.5 2.5 8 7"/></svg>';
+  window.__avatarFallback = function(imgEl){
+    if(imgEl && imgEl.parentElement){
+      imgEl.parentElement.innerHTML = PERSON_ICON_SVG;
+    }
+  };
+  window.__qrFallback = function(imgEl){
+    if(imgEl && imgEl.parentElement){
+      imgEl.parentElement.innerHTML = '<span>QR CODE</span>';
+    }
+  };
+
   function showToast(msg, isError){
     toast.textContent = msg;
     toast.classList.toggle('error', !!isError);
@@ -287,24 +321,28 @@
     return { level: 'ok', label: 'EXPIRES IN ' + days + ' DAYS', msgEn: '', msgHi: '' };
   }
 
-  function certBlockHtml(v){
-    const rows = CERT_DEFS.map(def => {
-      const dateIso = v[def.dateKey];
-      const fileUrl = (v.documents || {})[def.fileKey];
-      if(!dateIso && !fileUrl) return ''; // certificate not uploaded at all — skip
+  // Builds one bottom-row cell for a certificate: title + "EXP. : DATE ( X DAYS )"
+  // Background: green when validity > 30 days, red when expiring within 30 days or already expired.
+  function certCellHtml(def, v){
+    const dateIso = v[def.dateKey];
+    const fileUrl = (v.documents || {})[def.fileKey];
+    let sub, cls;
+    if(!fileUrl && !dateIso){
+      sub = 'NOT UPLOADED'; cls = 'missing';
+    } else if(!dateIso){
+      sub = 'NO DATE'; cls = 'missing';
+    } else {
       const days = daysUntil(dateIso);
       const st = certStatus(days, def.nameEn, def.nameHi);
-      const dateStr = dateIso ? formatDateDMY(dateIso) : 'NO DATE';
-      return (
-        '<div class="cert-item ' + (st.level === 'ok' ? '' : st.level) + '">' +
-          '<span class="cn">' + esc(def.nameEn) + ' / ' + esc(def.nameHi) + '</span>' +
-          '<span class="cd">VALID UPTO: ' + esc(dateStr) + '</span>' +
-          (st.label ? '<span class="cx">' + esc(st.label) + '</span>' : '') +
-          (st.msgEn ? '<span class="cmsg">' + esc(st.msgEn) + ' / ' + esc(st.msgHi) + '</span>' : '') +
-        '</div>'
-      );
-    }).filter(Boolean).join('');
-    return rows ? '<div class="cert-block">' + rows + '</div>' : '';
+      const dateStr = formatDateDMY(dateIso);
+      const daysLabel = days < 0
+        ? 'EXPIRED ' + Math.abs(days) + ' D AGO'
+        : (days === 0 ? 'TODAY' : days + ' DAYS');
+      sub = 'EXP. : ' + dateStr + ' ( ' + daysLabel + ' )';
+      cls = st.level === 'ok' ? 'ok' : 'warn';
+    }
+    return '<div class="vc-cell ' + cls + '"><div class="vc-cell-title">' + esc(def.nameEn.toUpperCase()) + '</div>' +
+      '<div class="vc-cell-sub">' + esc(sub) + '</div></div>';
   }
 
   function isExpired(iso){
@@ -357,39 +395,49 @@
       return;
     }
     setState('hidden', '');
-    countLine.textContent = vendors.length + ' VENDOR' + (vendors.length === 1 ? '' : 'S') + ' FOUND';
+    countLine.textContent = vendors.length + ' RECORD' + (vendors.length === 1 ? '' : 'S') + ' FOUND';
     cardsEl.innerHTML = vendors.map((v, i) => {
       const sr = i + 1;
-      const qrThumb = v.qrCode ? driveThumbUrl(v.qrCode, 120) : null;
+
+      // QR box (top-right)
+      const qrThumb = v.qrCode ? driveThumbUrl(v.qrCode, 200) : null;
       const qrCell = qrThumb
-        ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(qrThumb) + '" alt="QR" onerror="this.parentElement.classList.add(\'empty\');this.parentElement.innerHTML=\'QR\';"></div>'
-        : '<div class="vc-qr empty">NO QR</div>';
+        ? '<div class="vc-qr" data-qr-open="' + esc(v.qrViewUrl || v.qrCode) + '"><img src="' + esc(qrThumb) + '" alt="QR" onerror="__qrFallback(this)"></div>'
+        : '<div class="vc-qr"><span>QR CODE</span></div>';
+
+      // Photo box (top-left)
       const photoUrl = (v.documents || {}).photo;
-      const photoThumb = photoUrl ? driveThumbUrl(photoUrl, 100) : null;
-      const personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-7 8-7s6.5 2.5 8 7"/></svg>';
+      const photoThumb = photoUrl ? driveThumbUrl(photoUrl, 160) : null;
       const avatarCell = '<div class="vc-avatar">' +
         (photoThumb
-          ? '<img src="' + esc(photoThumb) + '" alt="Photo" onerror="this.parentElement.innerHTML=\'' + personIcon.replace(/'/g, "\\'") + '\';">'
-          : personIcon) +
+          ? '<img src="' + esc(photoThumb) + '" alt="Photo" onerror="__avatarFallback(this)">'
+          : '<span class="ph-label">PHOTO</span>') +
         '</div>';
+
+      // Middle info block: big highlighted NAME, then ID NO., Catering Unit, Aadhar + Mobile
+      const nameLine = '<div class="vc-name-line">' +
+        '<button class="vc-name-btn" data-aadhar="' + esc(v.aadhar) + '">' + esc(v.name || 'UNNAMED') + '</button>' +
+        (v.designation ? '<span class="vc-badge">' + esc(v.designation) + '</span>' : '') +
+        (v.station ? '<span class="vc-station">' + esc(v.station) + '</span>' : '') +
+      '</div>';
+      const idLine = '<div class="vc-row"><span class="lbl">ID No.:</span> ' + esc(v.idNo || '-') + '</div>';
+      const unitLine = '<div class="vc-row"><span class="lbl">Catering Unit:</span> ' + esc(v.unitName || '-') + '</div>';
+      const aadharMoLine = '<div class="vc-row"><span class="lbl">Aadhar:</span> ' + esc(maskAadhar(v.aadhar)) +
+        '&nbsp;&nbsp;&nbsp;<span class="lbl">Mo.:</span> ' + esc(v.mobile || '-') +
+      '</div>';
+
+      // Bottom row: 3 certificates
+      const certCells = CERT_DEFS.map(def => certCellHtml(def, v)).join('');
+
       return (
-        '<div class="vendor-card">' +
+        '<div class="vendor-card" data-aadhar="' + esc(v.aadhar) + '">' +
           '<div class="vc-top">' +
             '<div class="vc-sr">' + sr + '</div>' +
             avatarCell +
-            '<div class="vc-name-wrap">' +
-              '<button class="vc-name" data-aadhar="' + esc(v.aadhar) + '">' + esc(v.name || 'UNNAMED') + '</button>' +
-              '<div class="vc-sub">ID: ' + esc(v.idNo || '-') + '</div>' +
-            '</div>' +
+            '<div class="vc-info">' + nameLine + idLine + unitLine + aadharMoLine + '</div>' +
             qrCell +
           '</div>' +
-          '<div class="vc-grid">' +
-            '<div class="vc-field"><span class="k">Aadhar No.</span><span class="v">' + esc(maskAadhar(v.aadhar)) + '</span></div>' +
-            '<div class="vc-field"><span class="k">Mobile No.</span><span class="v">' + esc(v.mobile || '-') + '</span></div>' +
-            '<div class="vc-field"><span class="k">Station</span><span class="v">' + esc(v.station || '-') + '</span></div>' +
-            '<div class="vc-field"><span class="k">Catering Unit</span><span class="v">' + esc(v.unitName || '-') + '</span></div>' +
-          '</div>' +
-          certBlockHtml(v) +
+          '<div class="vc-bottom">' + certCells + '</div>' +
         '</div>'
       );
     }).join('');
@@ -411,16 +459,16 @@
   searchInput.addEventListener('input', applyFilter);
   refreshBtn.addEventListener('click', loadVendors);
 
-  // ---- Card interactions: open QR link, or open full report ----
+  // ---- Card interactions: open QR link, or open full report (whole card is clickable) ----
   cardsEl.addEventListener('click', function(e){
     const qrBox = e.target.closest('[data-qr-open]');
     if(qrBox){
       window.open(qrBox.getAttribute('data-qr-open'), '_blank', 'noopener');
       return;
     }
-    const nameBtn = e.target.closest('.vc-name');
-    if(nameBtn){
-      openReport(nameBtn.getAttribute('data-aadhar'));
+    const card = e.target.closest('.vendor-card');
+    if(card){
+      openReport(card.getAttribute('data-aadhar'));
     }
   });
 

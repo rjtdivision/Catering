@@ -386,7 +386,7 @@
           PASSPORT PHOTO <span class="hi">/ फोटो</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnPhoto">
-          <input type="file" id="fPhoto" name="fPhoto" accept="image/*">
+          <input type="file" id="fPhoto" name="fPhoto" accept="image/*,.pdf">
           <span id="fLabelPhoto">TAP TO UPLOAD</span>
         </div>
         <a href="#" target="_blank" rel="noopener" id="fViewPhoto" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
@@ -398,7 +398,7 @@
           SIGNATURE <span class="hi">/ हस्ताक्षर</span> <span class="req">*</span>
         </div>
         <div class="file-btn" id="fileBtnSign">
-          <input type="file" id="fSignature" name="fSignature" accept="image/*">
+          <input type="file" id="fSignature" name="fSignature" accept="image/*,.pdf">
           <span id="fLabelSign">TAP TO UPLOAD</span>
         </div>
         <a href="#" target="_blank" rel="noopener" id="fViewSign" style="display:none;font-size:10.5px;color:var(--cyan-500);text-decoration:underline;">VIEW CURRENT FILE / मौजूदा फाइल देखें</a>
@@ -905,15 +905,18 @@
         return;
       }
       const file = input.files[0];
-      if(!file.type.startsWith('image/')){
-        showToast('Only image files are allowed / केवल इमेज फाइल मान्य है', true);
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+      if(!file.type.startsWith('image/') && !isPdf){
+        showToast('Only image or PDF files are allowed / केवल इमेज या PDF फाइल मान्य है', true);
         input.value = '';
         label.textContent = 'TAP TO UPLOAD';
         card.classList.remove('has-file');
         return;
       }
       let finalFile = file;
-      if(file.type !== 'image/jpeg'){
+      if(isPdf){
+        // Leave PDFs untouched — no JPEG conversion needed.
+      } else if(file.type !== 'image/jpeg'){
         label.textContent = 'CONVERTING…';
         try{
           const dataUrl = await imageFileToJpeg(file, 1600, 0.9);

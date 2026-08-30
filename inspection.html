@@ -1145,20 +1145,29 @@
       : '';
 
     // Keep the plain data around for PDF generation.
+    // Sections where every point is NA/NOT MARKED are dropped entirely, then the
+    // remaining sections are renumbered sequentially (2, 3, 4, …) so the PDF never
+    // shows a gap like "2, 4, 6" — it always reads "2, 3, 4" no matter which
+    // sections got skipped.
+    const filledChecklistSections = CHECKLIST_SECTIONS
+      .map(sec => ({
+        title: sec.title,
+        points: sec.points
+          .map(p => ({ text: p.text, ans: radioVal('chk_' + p.sr) || 'NOT MARKED', rem: (document.querySelector('input[name="rem_' + p.sr + '"]').value || '').trim() }))
+          // Items left unmarked aren't shown in the PDF.
+          .filter(p => p.ans !== 'NA' && p.ans !== 'NOT MARKED')
+      }))
+      .filter(sec => sec.points.length)
+      .map((sec, idx) => ({ no: idx + 2, title: sec.title, points: sec.points })); // "1." is always ON DUTY STAFF
+
     lastReportData = {
       inspectorName: payload.inspectorName,
       dateDMY: dateDMY,
       unitName: payload.unitName,
       station: payload.station,
       staffSentences: onDutyStaff.map(v => staffSentencePlain(v, payload.unitName)),
-      checklistSections: CHECKLIST_SECTIONS.map(sec => ({
-        no: sec.no,
-        title: sec.title,
-        points: sec.points
-          .map(p => ({ text: p.text, ans: radioVal('chk_' + p.sr) || 'NOT MARKED', rem: (document.querySelector('input[name="rem_' + p.sr + '"]').value || '').trim() }))
-          // Items left unmarked aren't shown in the PDF.
-          .filter(p => p.ans !== 'NA' && p.ans !== 'NOT MARKED')
-      })),
+      checklistSections: filledChecklistSections,
+      otherRemarksNo: filledChecklistSections.length + 2,
       otherRemarks: remarkLines
     };
 
@@ -1316,9 +1325,8 @@
     });
     drawGap(6);
 
-    // ---- Checklist sections 2-8 ----
+    // ---- Checklist sections, renumbered sequentially (skipped sections leave no gap) ----
     lastReportData.checklistSections.forEach(sec => {
-      if(!sec.points.length) return; // all points left NOT MARKED — skip this section's heading in the PDF
       drawParagraph(sec.no + '. ' + sec.title + ' :', { bold: true, size: 11, lineHeight: 16 });
       sec.points.forEach(p => {
         let line = '*  ' + p.text + ' — ' + p.ans;
@@ -1329,9 +1337,9 @@
       drawGap(6);
     });
 
-    // ---- 9. Other Observation / Remarks ----
+    // ---- Other Observation / Remarks (number follows on from the last checklist section) ----
     if(lastReportData.otherRemarks && lastReportData.otherRemarks.length){
-      drawParagraph('9. OTHER OBSERVATION / REMARKS :', { bold: true, size: 11, lineHeight: 16 });
+      drawParagraph(lastReportData.otherRemarksNo + '. OTHER OBSERVATION / REMARKS :', { bold: true, size: 11, lineHeight: 16 });
       lastReportData.otherRemarks.forEach(r => {
         drawParagraph('*  ' + r, { size: 10, lineHeight: 13.5, hangingIndent: 10 });
         drawGap(3);

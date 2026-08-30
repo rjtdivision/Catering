@@ -67,9 +67,9 @@
   .vc-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
   .vc-avatar svg{width:20px;height:20px;stroke:var(--muted);}
   .vc-sr{
-    position:absolute;top:-5px;left:-5px;width:17px;height:17px;border-radius:6px;background:var(--navy-800);color:#fff;
-    font-size:9px;font-weight:700;font-family:var(--font-display);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 1px 3px rgba(0,0,0,0.3);z-index:1;
+    flex:0 0 auto;width:20px;height:20px;border-radius:6px;background:var(--navy-800);color:#fff;
+    font-size:10px;font-weight:700;font-family:var(--font-display);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.3);
   }
   .vc-info{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;}
   .vc-name-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;}
@@ -396,7 +396,6 @@
       const photoUrl = (v.documents || {}).photo;
       const photoThumb = photoUrl ? driveThumbUrl(photoUrl, 120) : null;
       const avatarCell = '<div class="vc-avatar">' +
-        '<div class="vc-sr">' + sr + '</div>' +
         (photoThumb
           ? '<img src="' + esc(photoThumb) + '" alt="Photo" onerror="__avatarFallback(this)">'
           : PERSON_ICON_SVG) +
@@ -420,6 +419,7 @@
       return (
         '<div class="vendor-card" data-aadhar="' + esc(v.aadhar) + '">' +
           '<div class="vc-top">' +
+            '<div class="vc-sr">' + sr + '</div>' +
             avatarCell +
             '<div class="vc-info">' + nameLine + unitLine + aadharMoLine + '</div>' +
           '</div>' +

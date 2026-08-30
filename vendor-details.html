@@ -318,21 +318,32 @@
 
     <div class="section-title">PERSONAL DETAILS <span class="hi">/ व्यक्तिगत विवरण</span></div>
 
+    <div class="row2">
+      <div class="field">
+        <label for="aadhar">AADHAR CARD NO. <span class="hi">/ आधार कार्ड नंबर</span> <span class="req">*</span></label>
+        <input type="text" id="aadhar" name="aadhar" placeholder="12-DIGIT NUMBER" maxlength="12" inputmode="numeric" required>
+      </div>
+      <div class="field">
+        <label for="idNo">ID NO. <span class="hi">/ आईडी नंबर</span> <span class="hint">(AUTO)</span></label>
+        <input type="text" id="idNo" name="idNo" placeholder="AUTO-GENERATED" disabled>
+      </div>
+    </div>
+
     <div class="field">
       <label for="name">NAME <span class="hi">/ नाम</span> <span class="req">*</span></label>
-      <input type="text" id="name" name="name" placeholder="ENTER FULL NAME" required autocomplete="off">
+      <input type="text" id="name" name="name" placeholder="ENTER FULL NAME" required autocomplete="off" disabled>
     </div>
 
     <div class="row2">
       <div class="field">
         <label for="station">STATION <span class="hi">/ स्टेशन</span> <span class="req">*</span></label>
         <select id="station" name="station" required disabled>
-          <option value="" disabled selected>LOADING STATIONS…</option>
+          <option value="" disabled selected>ENTER AADHAR FIRST</option>
         </select>
       </div>
       <div class="field">
         <label for="designation">DESIGNATION <span class="hi">/ पदनाम</span> <span class="req">*</span></label>
-        <select id="designation" name="designation" required>
+        <select id="designation" name="designation" required disabled>
           <option value="" disabled selected>SELECT</option>
           <option value="Vendor">VENDOR</option>
           <option value="Manager">MANAGER</option>
@@ -352,28 +363,17 @@
     <div class="row2">
       <div class="field">
         <label for="mobile">MOBILE NO. <span class="hi">/ मोबाइल नंबर</span> <span class="req">*</span></label>
-        <input type="tel" id="mobile" name="mobile" placeholder="10-DIGIT NUMBER" maxlength="10" inputmode="numeric" required>
+        <input type="tel" id="mobile" name="mobile" placeholder="10-DIGIT NUMBER" maxlength="10" inputmode="numeric" required disabled>
       </div>
       <div class="field">
         <label for="bloodGroup">BLOOD GROUP <span class="hi">/ रक्त समूह</span> <span class="req">*</span></label>
-        <select id="bloodGroup" name="bloodGroup" required>
+        <select id="bloodGroup" name="bloodGroup" required disabled>
           <option value="" disabled selected>SELECT</option>
           <option>A+</option><option>A-</option>
           <option>B+</option><option>B-</option>
           <option>AB+</option><option>AB-</option>
           <option>O+</option><option>O-</option>
         </select>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="field">
-        <label for="aadhar">AADHAR CARD NO. <span class="hi">/ आधार कार्ड नंबर</span> <span class="req">*</span></label>
-        <input type="text" id="aadhar" name="aadhar" placeholder="12-DIGIT NUMBER" maxlength="12" inputmode="numeric" required>
-      </div>
-      <div class="field">
-        <label for="idNo">ID NO. <span class="hi">/ आईडी नंबर</span> <span class="hint">(AUTO)</span></label>
-        <input type="text" id="idNo" name="idNo" placeholder="AUTO-GENERATED" disabled>
       </div>
     </div>
 
@@ -408,7 +408,7 @@
     <div class="upload-card">
       <div class="doc-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M13 10h6M13 14h4"/></svg>
-        AADHAR CARD <span class="hi">/ आधार कार्ड</span> <span class="req">*</span>
+        AADHAR CARD <span class="hi">/ आधार कार्ड</span>
       </div>
       <div class="upload-grid even">
         <div>
@@ -632,7 +632,8 @@
       opt.textContent = stationKeyToLabel[key].toUpperCase();
       stationSelect.appendChild(opt);
     });
-    stationSelect.disabled = false;
+    unitsReady = true;
+    applyFieldLockState();
   }
 
   async function loadCateringUnits(){
@@ -657,7 +658,7 @@
     rebuildUnitLookups();
     populateStationSelect();
     // If a station was already chosen (e.g. an edit was pending), refresh its unit options.
-    if(stationSelect.value) refreshUnitOptionsForStation(stationSelect.value, unitInput.value);
+    if(aadharUnlocked && stationSelect.value) refreshUnitOptionsForStation(stationSelect.value, unitInput.value);
   }
 
   function refreshUnitOptionsForStation(stationValue, preserveValue){
@@ -697,16 +698,39 @@
 
   // Aadhar must always be exactly digits — no spaces/dashes — so duplicate-check matching never drifts.
   const aadharInput = document.getElementById('aadhar');
-  aadharInput.addEventListener('input', () => {
-    aadharInput.value = aadharInput.value.replace(/[^0-9]/g, '').slice(0, 12);
-  });
   const designationSelect = document.getElementById('designation');
+  const nameInput = document.getElementById('name');
+  const mobileInput = document.getElementById('mobile');
+  const bloodGroupSelect = document.getElementById('bloodGroup');
+  const lockableFields = [nameInput, designationSelect, mobileInput, bloodGroupSelect];
+
+  // ================= Aadhar-first lock state =================
+  // Every other field stays disabled until a full 12-digit Aadhar has been entered
+  // AND checked against the sheet. Station additionally waits for the live
+  // catering-unit list to finish loading before it can unlock.
+  let aadharUnlocked = false;
+  let unitsReady = false;
+
+  function applyFieldLockState(){
+    lockableFields.forEach(el => { el.disabled = !aadharUnlocked; });
+    stationSelect.disabled = !(aadharUnlocked && unitsReady);
+    const stationPlaceholder = stationSelect.querySelector('option[value=""]');
+    if(stationPlaceholder){
+      stationPlaceholder.textContent = !aadharUnlocked ? 'ENTER AADHAR FIRST' : (unitsReady ? 'SELECT STATION' : 'LOADING STATIONS…');
+    }
+    if(!aadharUnlocked){
+      unitInput.disabled = true;
+    }
+  }
+  applyFieldLockState();
 
   // ================= Duplicate Aadhar / Edit-existing-record state =================
   let isEditMode = false;
   let editingAadhar = '';
   let existingRecord = null;
   let pendingRecordCheck = null;
+  let lastCheckedAadhar = '';
+  let aadharCheckInProgress = false;
   let existingDocBytes = {};
   let existingDocBytesPromise = null;
   const dupOverlay = document.getElementById('dupOverlay');
@@ -759,6 +783,48 @@
       return { exists:false, error: err.message };
     }
   }
+
+  // Runs the moment a full 12-digit Aadhar has been typed: checks the sheet for a
+  // duplicate, auto-loads its data if found, then unlocks the rest of the form.
+  async function runAadharCheck(aadharVal){
+    if(aadharVal.length !== 12 || aadharCheckInProgress || aadharVal === lastCheckedAadhar) return;
+    aadharCheckInProgress = true;
+    showToast('CHECKING AADHAR CARD NO… / आधार कार्ड नंबर जांचा जा रहा है…', false);
+    try{
+      const check = await checkAadharExists(aadharVal);
+      // The user kept editing / changed the Aadhar while this was in-flight — bail out silently.
+      if(aadharInput.value !== aadharVal) return;
+      lastCheckedAadhar = aadharVal;
+      if(check && check.exists && check.record){
+        pendingRecordCheck = check.record;
+        dupOverlay.style.display = 'flex';
+      } else {
+        isEditMode = false;
+        editingAadhar = '';
+        existingRecord = null;
+      }
+      aadharUnlocked = true;
+      applyFieldLockState();
+      updateIdNo();
+    } finally {
+      aadharCheckInProgress = false;
+    }
+  }
+
+  aadharInput.addEventListener('input', () => {
+    aadharInput.value = aadharInput.value.replace(/[^0-9]/g, '').slice(0, 12);
+    if(aadharInput.value !== lastCheckedAadhar){
+      // Any change away from the last-checked value re-locks the rest of the form
+      // until this (possibly new) Aadhar number has been checked again.
+      aadharUnlocked = false;
+      unitInput.disabled = true;
+      applyFieldLockState();
+    }
+    updateIdNo();
+    if(aadharInput.value.length === 12){
+      runAadharCheck(aadharInput.value);
+    }
+  });
 
   function existingDocUrl(field){
     return (isEditMode && existingRecord && existingRecord.documents) ? existingRecord.documents[field] : null;
@@ -868,13 +934,12 @@
     pendingRecordCheck = null;
   });
 
-  function storageKey(station){ return 'vendorCounter_' + station; }
-
+  // ID No. = STATION + last 4 digits of Aadhar Card No. (e.g. Aadhar …7066, Station JAM -> JAM7066)
   function previewNextId(station){
     if(!station) return '';
-    const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
-    const next = count + 1;
-    return station + String(next).padStart(3,'0');
+    const aadharDigits = aadharInput.value.replace(/[^0-9]/g, '');
+    if(aadharDigits.length < 4) return '';
+    return station + aadharDigits.slice(-4);
   }
 
   function updateIdNo(){
@@ -1093,7 +1158,8 @@
     html += rvDocRow('MEDICAL CERTIFICATE','मेडिकल प्रमाणपत्र','fMedical','dMedical', existingDocUrl('medicalCertificate'));
     html += rvDocRow('FSSAI LICENSE','एफएसएसएआई लाइसेंस','fFssai','dFssai', existingDocUrl('fssaiLicense'));
 
-    ['fPhoto','fSignature','fAadharFront','fAadharBack'].forEach(id => { if(!getFile(id) && !existingDocUrl(DOC_FIELD_MAP[id])) missingCount++; });
+    // Aadhar Front/Back are optional now — only Photo & Signature count toward "missing".
+    ['fPhoto','fSignature'].forEach(id => { if(!getFile(id) && !existingDocUrl(DOC_FIELD_MAP[id])) missingCount++; });
     if((!getFile('fPolice') && !existingDocUrl('policeCertificate')) || !val('dPolice')) missingCount++;
     if((!getFile('fFssai') && !existingDocUrl('fssaiLicense')) || !val('dFssai')) missingCount++;
 
@@ -1124,16 +1190,21 @@
       return;
     }
     const aadharVal = val('aadhar');
-    if(!aadharVal){
-      showToast('PLEASE ENTER AADHAR CARD NO. / आधार कार्ड नंबर दर्ज करें', true);
+    if(!aadharVal || aadharVal.length !== 12){
+      showToast('PLEASE ENTER A VALID 12-DIGIT AADHAR CARD NO. / मान्य आधार कार्ड नंबर दर्ज करें', true);
+      return;
+    }
+    if(!aadharUnlocked || aadharCheckInProgress){
+      showToast('PLEASE WAIT FOR THE AADHAR CHECK TO FINISH / कृपया आधार जांच पूरी होने तक प्रतीक्षा करें', true);
       return;
     }
 
     submitInProgress = true;
     mainSubmitBtn.disabled = true;
     try{
-      // Only re-check when the Aadhar number is new / different from the record we're already editing.
-      if(aadharVal !== editingAadhar){
+      // Only re-check when this Aadhar hasn't already been checked (it normally already
+      // was, as soon as the 12th digit was typed).
+      if(aadharVal !== editingAadhar && aadharVal !== lastCheckedAadhar){
         const check = await checkAadharExists(aadharVal);
         if(check && check.exists && check.record){
           pendingRecordCheck = check.record;
@@ -1597,6 +1668,9 @@
     isEditMode = false;
     editingAadhar = '';
     existingRecord = null;
+    aadharUnlocked = false;
+    lastCheckedAadhar = '';
+    applyFieldLockState();
     updateIdNo();
   }
 
@@ -1604,7 +1678,8 @@
     btnConfirm.disabled = true;
     btnConfirm.textContent = 'GENERATING…';
 
-    // Assign the ID number — reuse the existing ID when updating a record, otherwise mint a new one.
+    // Assign the ID number — reuse the existing ID when updating a record, otherwise
+    // it's STATION + last 4 digits of Aadhar Card No. (e.g. JAM7066).
     const station = stationSelect.value;
     let assignedId = idNo.value || '--';
     const updatingExisting = isEditMode && val('aadhar') === editingAadhar && existingRecord;
@@ -1612,10 +1687,7 @@
       assignedId = existingRecord.idNo;
       idNo.value = assignedId;
     } else if(station){
-      const count = parseInt(localStorage.getItem(storageKey(station)) || '0', 10);
-      const next = count + 1;
-      localStorage.setItem(storageKey(station), String(next));
-      assignedId = station + String(next).padStart(3,'0');
+      assignedId = previewNextId(station) || assignedId;
       idNo.value = assignedId;
     }
 

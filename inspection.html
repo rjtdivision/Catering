@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inspection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+<style>
+  :root{
+    --navy-950:#061a33;
+    --navy-900:#0b2545;
+    --navy-800:#123a6b;
+    --navy-700:#1a4a86;
+    --cyan-500:#06b6d4;
+    --cyan-400:#22d3ee;
+    --cyan-300:#67e8f9;
+    --cyan-100:#e3fbff;
+    --cyan-50:#f0fdff;
+    --line:#d7e8f5;
+    --ink:#0b2545;
+    --muted:#5a7291;
+    --danger:#e0455a;
+    --font-display:'Poppins',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--cyan-50);font-family:var(--font-body);color:var(--ink);min-height:100%;}
+  body{-webkit-tap-highlight-color:transparent;}
+
+  #fitStage{
+    padding:10px 12px 24px;
+    max-width:520px;
+    margin:0 auto;
+  }
+
+  .section-title{
+    font-family:var(--font-display);
+    font-size:10.5px;
+    font-weight:700;
+    color:#fff;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin:12px 0 7px;
+    padding:7px 10px;
+    border-radius:7px;
+    background:linear-gradient(135deg,var(--navy-800) 0%,var(--navy-700) 100%);
+    box-shadow:0 2px 6px rgba(11,37,69,0.25);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .section-title::before{
+    content:"";
+    width:3px;height:12px;
+    border-radius:2px;
+    background:var(--cyan-400);
+    display:inline-block;
+  }
+  .section-title .hi{color:var(--cyan-300);}
+  .section-title:first-child{margin-top:2px;}
+
+  .field{margin-bottom:10px;}
+  .field label{
+    display:block;
+    font-size:9.5px;
+    font-weight:600;
+    color:var(--navy-800);
+    margin-bottom:2px;
+  }
+  .hi{color:var(--muted);font-weight:700;text-transform:none;font-size:9.5px;}
+  .field label .hi{font-size:9.5px;}
+  .req{color:var(--danger);font-weight:700;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+  input[type="text"],
+  input[type="date"],
+  select{
+    width:100%;
+    padding:8px 8px;
+    font-size:12.5px;
+    font-family:var(--font-body);
+    color:var(--navy-800);
+    background:#fff;
+    border:1.5px solid var(--navy-700);
+    border-radius:8px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    -webkit-appearance:none;
+    appearance:none;
+    text-transform:uppercase;
+  }
+  input:focus, select:focus{
+    border-color:var(--cyan-500);
+    box-shadow:0 0 0 3px rgba(6,182,212,0.15);
+  }
+  input:disabled, select:disabled{background:#eef4f9;color:var(--muted);}
+  input::placeholder{color:#a9bdd2;text-transform:uppercase;}
+
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a4a86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 8px center;
+    padding-right:26px;
+  }
+
+  textarea{
+    width:100%;padding:8px;font-size:12.5px;font-family:var(--font-body);
+    color:var(--navy-800);background:#fff;border:1.5px solid var(--navy-700);
+    border-radius:8px;outline:none;resize:vertical;text-transform:none;
+  }
+  textarea:focus{border-color:var(--cyan-500);box-shadow:0 0 0 3px rgba(6,182,212,0.15);}
+  textarea::placeholder{color:#a9bdd2;}
+
+  /* ---- Checklist items (sections B–H) ---- */
+  .chk-item{border-bottom:1px solid var(--line);padding:9px 0;}
+  .chk-item:last-child{border-bottom:none;}
+  .chk-text{font-size:11.5px;font-weight:600;color:var(--navy-800);margin-bottom:6px;line-height:1.4;display:flex;align-items:flex-start;gap:6px;}
+  .chk-text b{color:var(--navy-900);flex:0 0 auto;}
+  .chk-text-value{flex:1 1 auto;}
+  .chk-edit-btn{
+    flex:0 0 auto;border:none;background:none;padding:2px;cursor:pointer;
+    color:var(--cyan-500);line-height:0;margin-top:1px;
+  }
+  .chk-edit-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+  .chk-options{display:flex;gap:14px;margin-bottom:6px;flex-wrap:wrap;}
+  .chk-options label{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--navy-800);text-transform:uppercase;cursor:pointer;}
+  .chk-options input[type="radio"]{width:15px;height:15px;accent-color:var(--cyan-500);flex:0 0 auto;}
+  .chk-remarks{font-size:11px !important;padding:5px 7px !important;text-transform:none !important;}
+  .chk-remarks::placeholder{text-transform:none;}
+
+  /* ---- date field: force DD/MM/YYYY display regardless of device locale ---- */
+  .date-field{position:relative;}
+  .date-field input[type="date"]{color:transparent;}
+  .date-field input[type="date"]::-webkit-datetime-edit,
+  .date-field input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  .date-field input[type="date"]::-webkit-datetime-edit-text,
+  .date-field input[type="date"]::-webkit-datetime-edit-month-field,
+  .date-field input[type="date"]::-webkit-datetime-edit-day-field,
+  .date-field input[type="date"]::-webkit-datetime-edit-year-field{color:transparent;}
+  .date-display{
+    position:absolute;left:8px;top:50%;
+    transform:translateY(-50%);
+    font-size:11.5px;
+    font-family:var(--font-body);
+    font-weight:600;
+    color:var(--navy-800);
+    pointer-events:none;
+    text-transform:none;
+  }
+
+  /* ---- On Duty Staff: multi-select dropdown ---- */
+  .ms-wrap{position:relative;}
+  .ms-trigger{
+    width:100%;text-align:left;
+    padding:8px 30px 8px 8px;
+    font-size:12.5px;font-family:var(--font-body);
+    color:var(--navy-800);background:#fff;
+    border:1.5px solid var(--navy-700);border-radius:8px;
+    text-transform:uppercase;cursor:pointer;
+    display:block;position:relative;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .ms-trigger::after{
+    content:"";position:absolute;right:8px;top:50%;
+    width:14px;height:14px;transform:translateY(-50%);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231a4a86' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-size:contain;
+    transition:transform .15s ease;
+  }
+  .ms-trigger.open::after{transform:translateY(-50%) rotate(180deg);}
+  .ms-trigger:disabled{background:#eef4f9;color:var(--muted);cursor:default;}
+  .ms-trigger.placeholder{color:#a9bdd2;}
+  .ms-panel{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+    background:#fff;border:1.5px solid var(--cyan-500);border-radius:10px;
+    box-shadow:0 8px 20px rgba(11,37,69,0.18);z-index:20;
+    max-height:220px;overflow-y:auto;padding:5px;
+  }
+  .ms-panel.show{display:block;}
+  .ms-option{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 7px;border-radius:7px;
+    font-size:12px;color:var(--navy-800);text-transform:none;cursor:pointer;
+  }
+  .ms-option:active{background:var(--cyan-50);}
+  .ms-option input[type="checkbox"]{width:16px;height:16px;accent-color:var(--cyan-500);flex:0 0 auto;}
+  .ms-option .ms-desig{color:var(--muted);font-size:10px;font-weight:500;margin-left:4px;}
+  .ms-empty{padding:12px 6px;font-size:11.5px;color:var(--muted);text-align:center;}
+
+  /* ---- Selected staff certificate validity cards ---- */
+  .staff-cert-card{
+    border:1.5px solid var(--line);border-radius:9px;overflow:hidden;
+    margin-bottom:8px;background:#fff;
+  }
+  .staff-cert-name{
+    padding:7px 9px;font-size:11.5px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,var(--navy-800),var(--navy-700));
+    display:flex;justify-content:space-between;align-items:center;gap:6px;
+    font-family:var(--font-display);
+  }
+  .staff-cert-name .desig{font-size:8.5px;font-weight:600;color:var(--cyan-300);text-transform:uppercase;letter-spacing:0.3px;}
+  .cert-chip{
+    background:#fff;padding:6px 9px;text-align:left;
+    font-size:10.5px;font-weight:600;line-height:1.4;
+    border-top:1px solid var(--cyan-50);text-transform:none;
+  }
+  .cert-chip:first-child{border-top:none;}
+  .cert-chip b{font-family:var(--font-display);font-weight:700;letter-spacing:0.1px;}
+  .cert-chip.ok{background:#e6f7ec;color:#137a45;}
+  .cert-chip.warn{background:#fdeceb;color:#c02f3f;}
+  .cert-chip.missing{background:#f2f4f7;color:var(--muted);}
+
+  .submit-btn{
+    width:100%;
+    padding:11px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-family:var(--font-display);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.2px;
+    color:var(--navy-950);
+    background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
+    box-shadow:0 4px 10px rgba(6,182,212,0.35);
+    cursor:pointer;
+  }
+  .submit-btn:active{transform:translateY(1px);}
+  .submit-btn:disabled{opacity:0.6;cursor:default;}
+
+  #toast{
+    position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);
+    background:var(--navy-950);color:#fff;padding:11px 18px;border-radius:10px;
+    font-size:12.5px;font-weight:500;box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;z-index:300;
+    max-width:88%;text-align:center;border:1px solid rgba(103,232,249,0.3);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+  #toast.error{border-color:rgba(224,69,90,0.5);}
+
+  /* ================= Report screen (shown after Start Inspection) ================= */
+  #reportView{display:none;min-height:100vh;background:#fff;position:relative;}
+  .back-btn{
+    position:fixed;top:12px;right:12px;z-index:50;
+    display:flex;align-items:center;gap:5px;
+    padding:8px 13px;border:none;border-radius:20px;
+    font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.2px;
+    color:#fff;background:linear-gradient(135deg,var(--navy-800),var(--navy-700));
+    box-shadow:0 3px 10px rgba(11,37,69,0.3);cursor:pointer;
+  }
+  .back-btn:active{transform:translateY(1px);}
+  .back-btn svg{width:14px;height:14px;stroke:currentColor;flex:0 0 auto;}
+
+  .report-wrap{max-width:520px;margin:0 auto;padding:56px 16px 30px;}
+  .report-title{
+    font-family:var(--font-display);font-size:14.5px;font-weight:700;
+    color:var(--navy-900);line-height:1.5;margin:0 0 10px;text-align:center;
+  }
+  .report-unit{
+    font-family:var(--font-display);font-size:13px;font-weight:600;
+    color:var(--navy-800);margin:0 0 10px;
+  }
+  .report-rule{border:none;border-top:2px solid var(--navy-700);margin:0 0 16px;}
+  .report-point-title{
+    font-family:var(--font-display);font-size:12.5px;font-weight:700;
+    color:var(--navy-900);text-transform:uppercase;letter-spacing:0.2px;margin:0 0 10px;
+  }
+  .staff-line{
+    font-size:12.5px;line-height:1.65;color:var(--navy-800);
+    margin:0 0 12px;padding-left:14px;text-indent:-14px;
+    text-align:justify;
+  }
+  .staff-line b{font-weight:700;color:var(--navy-900);}
+
+  .rpt-section-title{
+    font-family:var(--font-display);font-size:12.5px;font-weight:700;
+    color:var(--navy-900);text-transform:uppercase;letter-spacing:0.2px;margin:22px 0 10px;
+  }
+  .rpt-line{
+    font-size:12px;line-height:1.6;color:var(--navy-800);
+    margin:0 0 8px;padding-left:14px;text-indent:-14px;text-align:justify;
+  }
+  .rpt-line b{color:var(--navy-900);}
+  .rpt-line .rem{color:var(--muted);font-style:italic;}
+  .rpt-block{font-size:12.5px;line-height:1.7;color:var(--navy-800);margin:0 0 8px;}
+  .rpt-block b{color:var(--navy-900);}
+  .sig-block{margin-top:18px;font-size:12.5px;line-height:1.9;color:var(--navy-800);}
+  .sig-block b{display:block;font-family:var(--font-display);font-size:11.5px;color:var(--navy-900);margin-bottom:4px;}
+
+  .final-submit-btn{
+    width:100%;padding:12px;margin-top:26px;border:none;border-radius:10px;
+    font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:0.2px;
+    color:#fff;background:linear-gradient(135deg,var(--navy-800),var(--navy-700));
+    box-shadow:0 4px 10px rgba(11,37,69,0.3);cursor:pointer;
+  }
+  .final-submit-btn:active{transform:translateY(1px);}
+
+  /* ---- Section 9: Other Observation / Remarks — dynamic rows ---- */
+  .remark-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+  .remark-row input[type="text"]{flex:1 1 auto;text-transform:none;}
+  .remark-remove-btn{
+    flex:0 0 auto;border:none;background:#fdeceb;color:var(--danger);
+    width:32px;height:32px;border-radius:8px;font-size:17px;font-weight:700;
+    line-height:1;cursor:pointer;
+  }
+  .remark-remove-btn:active{transform:translateY(1px);}
+  .add-row-btn{
+    width:100%;padding:9px;margin:2px 0 4px;cursor:pointer;
+    border:1.5px dashed var(--navy-700);border-radius:8px;background:#fff;
+    font-family:var(--font-display);font-size:11.5px;font-weight:600;
+    color:var(--navy-800);letter-spacing:0.2px;
+  }
+  .add-row-btn:active{transform:translateY(1px);}
+
+  /* ---- PDF preview overlay ---- */
+  #pdfOverlay{
+    display:none;position:fixed;inset:0;z-index:500;
+    background:var(--navy-950);flex-direction:column;
+  }
+  #pdfOverlay.show{display:flex;}
+  .pdf-head{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;background:linear-gradient(135deg,var(--navy-950),var(--navy-800));
+    border-bottom:2px solid var(--cyan-400);color:#fff;
+  }
+  .pdf-head h3{font-family:var(--font-display);font-size:13px;margin:0;font-weight:600;}
+  .pdf-head p{font-size:10px;color:var(--cyan-300);margin:2px 0 0;}
+  .pdf-close{
+    border:none;background:rgba(255,255,255,0.12);color:#fff;
+    padding:7px 13px;border-radius:16px;font-size:11px;font-weight:600;
+    font-family:var(--font-display);cursor:pointer;
+  }
+  .pdf-body{flex:1 1 auto;min-height:0;position:relative;background:#5a6c80;}
+  .pdf-body iframe{width:100%;height:100%;border:0;display:block;}
+  .pdf-loading{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:10px;color:#fff;font-family:var(--font-body);font-size:12px;font-weight:500;
+  }
+  .pdf-spinner{
+    width:30px;height:30px;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.25);border-top-color:var(--cyan-400);
+    animation:pdfspin .8s linear infinite;
+  }
+  @keyframes pdfspin{to{transform:rotate(360deg);}}
+  .pdf-actions{
+    flex:0 0 auto;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:var(--navy-950);border-top:1px solid rgba(255,255,255,0.12);
+  }
+  .pdf-dl-btn{
+    display:block;width:100%;padding:12px;text-align:center;text-decoration:none;
+    border-radius:10px;font-family:var(--font-display);font-size:13px;font-weight:600;
+    color:var(--navy-950);background:linear-gradient(135deg,var(--cyan-400),var(--cyan-500));
+    box-shadow:0 4px 10px rgba(6,182,212,0.35);
+  }
+  .pdf-dl-btn:active{transform:translateY(1px);}
+</style>
+</head>
+<body>
+
+<div id="fitStage">
+  <form id="inspectionForm" novalidate>
+
+    <div class="section-title">INSPECTION DETAILS <span class="hi">/ निरीक्षण विवरण</span></div>
+
+    <div class="field">
+      <label for="inspectorName">NAME OF INSPECTING OFFICIAL <span class="hi">/ निरीक्षण अधिकारी का नाम</span> <span class="req">*</span></label>
+      <select id="inspectorName" name="inspectorName" required>
+        <option value="" disabled selected>SELECT NAME</option>
+        <option>R. K. SHARMA</option>
+        <option>A. P. MEHTA</option>
+        <option>S. N. JOSHI</option>
+        <option>K. D. PATEL</option>
+        <option>V. R. CHAUHAN</option>
+        <option>M. B. TRIVEDI</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="station">SELECT INSPECTION STATION <span class="hi">/ निरीक्षण स्टेशन चुनें</span> <span class="req">*</span></label>
+      <select id="station" name="station" required disabled>
+        <option value="" disabled selected>LOADING STATIONS…</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="unitName">NAME OF UNIT <span class="hi">/ यूनिट का नाम</span> <span class="req">*</span></label>
+      <select id="unitName" name="unitName" required disabled>
+        <option value="" disabled selected>SELECT STATION FIRST</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="inspectionDate">DATE OF INSPECTION <span class="hi">/ निरीक्षण की तिथि</span> <span class="req">*</span></label>
+      <div class="date-field">
+        <input type="date" id="inspectionDate" name="inspectionDate" required>
+        <span class="date-display" id="inspectionDateDisplay">DD/MM/YYYY</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="staffTrigger">ON DUTY STAFF <span class="hi">/ ड्यूटी पर स्टाफ</span> <span class="req">*</span></label>
+      <div class="ms-wrap" id="staffWrap">
+        <button type="button" class="ms-trigger placeholder" id="staffTrigger" disabled>SELECT STATION &amp; UNIT FIRST</button>
+        <div class="ms-panel" id="staffPanel"></div>
+      </div>
+    </div>
+
+    <div class="field" id="staffCertsField" style="display:none;">
+      <label>STAFF CERTIFICATE VALIDITY <span class="hi">/ स्टाफ प्रमाणपत्र वैधता</span></label>
+      <div id="staffCertsList"></div>
+    </div>
+
+    <div id="checklistSections"></div>
+
+    <div class="section-title">9. OTHER OBSERVATION / REMARKS <span class="hi">/ अन्य अवलोकन / टिप्पणी</span></div>
+    <div id="remarksRows"></div>
+    <button type="button" class="add-row-btn" id="btnAddRemark">+ ADD ROW <span class="hi" style="color:rgba(11,37,69,0.55)">/ पंक्ति जोड़ें</span></button>
+
+    <button type="submit" class="submit-btn" id="btnStart">START INSPECTION <span class="hi" style="color:rgba(11,37,69,0.65)">/ निरीक्षण शुरू करें</span></button>
+
+  </form>
+</div>
+
+<div id="toast"></div>
+
+<div id="reportView">
+  <button type="button" class="back-btn" id="btnBack">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    BACK
+  </button>
+  <div class="report-wrap">
+    <div class="report-title">CATERING INSPECTION CARRIED OUT BY <span id="rInspector"></span> ON <span id="rDate"></span></div>
+    <div class="report-unit">NAME OF UNIT : <span id="rUnit"></span> - <span id="rStation"></span></div>
+    <hr class="report-rule">
+    <div class="report-point-title">1. ON DUTY STAFF :</div>
+    <div id="rStaffList"></div>
+
+    <div id="rChecklist"></div>
+
+    <div id="rRemarks"></div>
+
+    <button type="button" class="final-submit-btn" id="btnGeneratePdf">SUBMIT <span class="hi" style="color:rgba(255,255,255,0.7)">/ जमा करें (PDF रिपोर्ट)</span></button>
+  </div>
+</div>
+
+<div id="pdfOverlay">
+  <div class="pdf-head">
+    <div>
+      <h3>INSPECTION REPORT — PDF</h3>
+      <p>PREVIEW / पूर्वावलोकन</p>
+    </div>
+    <button type="button" class="pdf-close" id="btnClosePdf">CLOSE</button>
+  </div>
+  <div class="pdf-body">
+    <div class="pdf-loading" id="pdfLoading">
+      <div class="pdf-spinner"></div>
+      <span>GENERATING PDF…</span>
+    </div>
+    <iframe id="pdfFrame" style="display:none;" title="Inspection report PDF preview"></iframe>
+  </div>
+  <div class="pdf-actions" id="pdfActions" style="display:none;">
+    <a id="pdfDownloadLink" class="pdf-dl-btn" download="inspection-report.pdf">DOWNLOAD PDF</a>
+  </div>
+</div>
+
+<script>
+  // Same deployed Apps Script backend used by vendor-details.html, so the station /
+  // unit list here always matches the "catering_unit" sheet.
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN59TMwl1JT58yQn1pPexSLO2rJscqITjUA-wFkwVVaEsYTyDDsgcM7hwZuGvDvSu5hQ/exec';
+
+  // Fallback data used ONLY if the "catering_unit" sheet can't be reached.
+  const FALLBACK_STATIONS = ["OKHA","MTHP","DWK","BHTA","KMBL","JAM","HAPA","RJT","BKNG","MVI","WKR","SUNR","PDH"];
+  const FALLBACK_UNITS_BY_STATION = {
+    OKHA:["Okha Refreshment Room","Okha Static Catering Unit"],
+    MTHP:["Maliya Miyana Tea Point"],
+    DWK:["Dwarka Refreshment Stall","Dwarka Static Unit"],
+    BHTA:["Bhatia Catering Point"],
+    KMBL:["Kanalus Tea Stall"],
+    JAM:["Jamnagar Refreshment Room","Jamnagar Food Plaza","Jamnagar Static Unit"],
+    HAPA:["Hapa Catering Point"],
+    RJT:["Rajkot Refreshment Room","Rajkot Food Plaza","Rajkot Static Unit"],
+    BKNG:["Bhaktinagar Catering Point"],
+    MVI:["Morbi Refreshment Stall"],
+    WKR:["Wankaner Catering Point"],
+    SUNR:["Surendranagar Refreshment Room","Surendranagar Static Unit"],
+    PDH:["Paddhari Tea Stall"]
+  };
+
+  let CATERING_UNITS = [];
+  let UNITS_BY_STATION = {};
+  let stationKeyToLabel = {};
+
+  function normKey(s){ return String(s || '').trim().toUpperCase(); }
+
+  function rebuildUnitLookups(){
+    UNITS_BY_STATION = {};
+    stationKeyToLabel = {};
+    CATERING_UNITS.forEach(u => {
+      const key = normKey(u.station);
+      if(!key) return;
+      if(!stationKeyToLabel[key]) stationKeyToLabel[key] = String(u.station).trim();
+      if(!UNITS_BY_STATION[key]) UNITS_BY_STATION[key] = [];
+      if(u.name && !UNITS_BY_STATION[key].includes(u.name)) UNITS_BY_STATION[key].push(u.name);
+    });
+    Object.keys(UNITS_BY_STATION).forEach(k => UNITS_BY_STATION[k].sort((a,b) => a.localeCompare(b)));
+  }
+
+  function populateStationSelect(){
+    const keys = Object.keys(stationKeyToLabel).sort((a,b) => stationKeyToLabel[a].localeCompare(stationKeyToLabel[b]));
+    stationSelect.innerHTML = '<option value="" disabled selected>SELECT STATION</option>';
+    keys.forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = stationKeyToLabel[key];
+      opt.textContent = stationKeyToLabel[key].toUpperCase();
+      stationSelect.appendChild(opt);
+    });
+    stationSelect.disabled = false;
+  }
+
+  async function loadCateringUnits(){
+    try{
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) throw new Error('backend not configured');
+      const res = await fetch(APPS_SCRIPT_URL + '?catUnits=1');
+      const data = await res.json();
+      if(data && data.success && Array.isArray(data.units) && data.units.length){
+        CATERING_UNITS = data.units;
+      } else {
+        throw new Error((data && data.error) || 'no units returned');
+      }
+    } catch(err){
+      CATERING_UNITS = [];
+      FALLBACK_STATIONS.forEach(code => {
+        (FALLBACK_UNITS_BY_STATION[code] || []).forEach(name => {
+          CATERING_UNITS.push({ station: code, name: name });
+        });
+      });
+    }
+    rebuildUnitLookups();
+    populateStationSelect();
+  }
+
+  function refreshUnitOptionsForStation(stationValue){
+    const key = normKey(stationValue);
+    const units = UNITS_BY_STATION[key] || [];
+    unitInput.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = units.length ? 'SELECT UNIT' : 'NO UNITS FOUND FOR THIS STATION';
+    unitInput.appendChild(placeholder);
+    units.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      unitInput.appendChild(opt);
+    });
+    unitInput.disabled = false;
+    unitInput.value = '';
+  }
+
+  const stationSelect = document.getElementById('station');
+  const unitInput = document.getElementById('unitName');
+
+  stationSelect.addEventListener('change', () => {
+    refreshUnitOptionsForStation(stationSelect.value);
+    resetStaffSelect('SELECT UNIT FIRST');
+  });
+
+  unitInput.addEventListener('change', () => {
+    refreshStaffOptionsForUnit(stationSelect.value, unitInput.value);
+  });
+
+  loadCateringUnits();
+
+  // ================= On Duty Staff — multi-select, sourced from the vendor list =================
+  let allVendors = [];        // full vendor list, same data as vendor-list.html (?list=1)
+  let staffOptions = [];      // vendors filtered to the currently selected station + unit
+  let selectedStaff = {};     // aadhar -> vendor object, for whoever is checked
+
+  const staffTrigger = document.getElementById('staffTrigger');
+  const staffPanel = document.getElementById('staffPanel');
+
+  async function loadVendorList(){
+    try{
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) throw new Error('backend not configured');
+      const res = await fetch(APPS_SCRIPT_URL + '?list=1');
+      const data = await res.json();
+      if(data && data.success && Array.isArray(data.vendors)){
+        allVendors = data.vendors;
+      } else {
+        allVendors = [];
+      }
+    } catch(err){
+      allVendors = [];
+    }
+  }
+
+  function resetStaffSelect(placeholderText){
+    staffOptions = [];
+    selectedStaff = {};
+    staffPanel.classList.remove('show');
+    staffPanel.innerHTML = '';
+    staffTrigger.classList.remove('open');
+    staffTrigger.classList.add('placeholder');
+    staffTrigger.disabled = true;
+    staffTrigger.textContent = placeholderText || 'SELECT STATION & UNIT FIRST';
+    renderStaffCertDetails();
+  }
+
+  function updateStaffTriggerLabel(){
+    const names = Object.values(selectedStaff).map(v => v.name || 'UNNAMED');
+    if(!names.length){
+      staffTrigger.classList.add('placeholder');
+      staffTrigger.textContent = staffOptions.length ? 'SELECT ON DUTY STAFF' : 'NO STAFF FOUND FOR THIS UNIT';
+    } else {
+      staffTrigger.classList.remove('placeholder');
+      staffTrigger.textContent = names.length + ' SELECTED: ' + names.join(', ');
+    }
+  }
+
+  function renderStaffPanel(){
+    if(!staffOptions.length){
+      staffPanel.innerHTML = '<div class="ms-empty">NO STAFF FOUND FOR THIS UNIT / इस यूनिट के लिए कोई स्टाफ नहीं मिला</div>';
+      return;
+    }
+    staffPanel.innerHTML = staffOptions.map(v => {
+      const checked = selectedStaff[v.aadhar] ? 'checked' : '';
+      const desig = v.designation ? '<span class="ms-desig">(' + esc(v.designation) + ')</span>' : '';
+      return '<label class="ms-option"><input type="checkbox" data-aadhar="' + esc(v.aadhar) + '" ' + checked + '> ' + esc(v.name || 'UNNAMED') + desig + '</label>';
+    }).join('');
+    staffPanel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const aad = cb.getAttribute('data-aadhar');
+        const rec = staffOptions.find(v => String(v.aadhar) === String(aad));
+        if(cb.checked){ if(rec) selectedStaff[aad] = rec; }
+        else { delete selectedStaff[aad]; }
+        updateStaffTriggerLabel();
+        renderStaffCertDetails();
+      });
+    });
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ================= Checklist sections B–H (from the Railway inspection proforma) =================
+  const CHECKLIST_SECTIONS = [
+    { no: 2, title: 'RATE, BILLING & PASSENGER SERVICE', points: [
+      { sr: 7, text: 'Approved rate/menu list prominently displayed' },
+      { sr: 8, text: 'Items sold at approved/MRP rates, as applicable' },
+      { sr: 9, text: 'No overcharging noticed' },
+      { sr: 10, text: 'Printed/digital bill/receipt issued to customer' },
+      { sr: 11, text: 'Cashless/digital payment facility available' },
+      { sr: 12, text: 'Complaint/suggestion mechanism displayed/available' },
+      { sr: 13, text: 'No unauthorised vending/sale observed' }
+    ]},
+    { no: 3, title: 'FOOD QUALITY & STORAGE', points: [
+      { sr: 14, text: 'Food items fresh and fit for consumption' },
+      { sr: 15, text: 'No expired/stale food found' },
+      { sr: 16, text: 'Prepared food properly covered/protected' },
+      { sr: 17, text: 'Raw and cooked food properly segregated' },
+      { sr: 18, text: 'Refrigerated/perishable items stored appropriately' },
+      { sr: 19, text: 'Expiry/date/packaging details checked' },
+      { sr: 20, text: 'Food storage area clean and hygienic' },
+      { sr: 21, text: 'Food-grade packaging material used' },
+      { sr: 22, text: 'Food not packed in newspaper/unsuitable material' }
+    ]},
+    { no: 4, title: 'CLEANLINESS & HYGIENE', points: [
+      { sr: 23, text: 'Counter/table/shelves clean' },
+      { sr: 24, text: 'Floor and surrounding area clean' },
+      { sr: 25, text: 'Walls/ceiling/fittings clean and maintained' },
+      { sr: 26, text: 'Food preparation/handling area hygienic' },
+      { sr: 27, text: 'Clean and covered dustbin available' },
+      { sr: 28, text: 'Waste disposed of regularly' },
+      { sr: 29, text: 'No flies/cockroaches/rodents or signs thereof' },
+      { sr: 30, text: 'Pest-control measures/records available, where applicable' }
+    ]},
+    { no: 5, title: 'FOOD HANDLER / STAFF HYGIENE', points: [
+      { sr: 31, text: 'Staff wearing clean prescribed uniform' },
+      { sr: 32, text: 'Apron/cap/hair restraint used where required' },
+      { sr: 33, text: 'Hands/nails clean and personal hygiene satisfactory' },
+      { sr: 34, text: 'Food handlers follow safe food-handling practices' },
+      { sr: 35, text: 'Required food-safety training/supervisor arrangement available' }
+    ]},
+    { no: 6, title: 'WATER, UTENSILS & EQUIPMENT', points: [
+      { sr: 36, text: 'Potable/safe water available' },
+      { sr: 37, text: 'Drinking water container properly covered' },
+      { sr: 38, text: 'Utensils/equipment clean' },
+      { sr: 39, text: 'Refrigerator/freezer, where provided, functional and clean' },
+      { sr: 40, text: 'Cooking/heating equipment properly maintained' },
+      { sr: 41, text: 'Weighing scale functional, where applicable' }
+    ]},
+    { no: 7, title: 'FIRE & ELECTRICAL SAFETY', points: [
+      { sr: 42, text: 'Fire extinguisher available, valid and accessible' },
+      { sr: 43, text: 'Electrical wiring/sockets in safe condition' },
+      { sr: 44, text: 'Electrical appliances properly installed' },
+      { sr: 45, text: 'Cooking/heating arrangements safely operated' },
+      { sr: 46, text: 'No unsafe/unauthorised electrical connection' }
+    ]},
+    { no: 8, title: 'RAILWAY PREMISES / CONTRACT CONDITIONS', points: [
+      { sr: 47, text: 'Stall/unit operating within allotted area' },
+      { sr: 48, text: 'No unauthorised extension/encroachment' },
+      { sr: 49, text: 'Railway property/fixtures not damaged' },
+      { sr: 50, text: 'Signboard/display as per prescribed conditions' },
+      { sr: 51, text: 'Previous inspection deficiencies complied with' },
+      { sr: 52, text: 'Other licence/contract conditions complied with' }
+    ]}
+  ];
+
+  function renderChecklistForm(){
+    const container = document.getElementById('checklistSections');
+    container.innerHTML = CHECKLIST_SECTIONS.map(sec => {
+      const items = sec.points.map((p, idx) => {
+        const localNo = idx + 1;
+        return '<div class="chk-item">' +
+          '<div class="chk-text"><b>' + localNo + '.</b> ' +
+            '<span class="chk-text-value" data-sr="' + p.sr + '">' + esc(p.text) + '</span>' +
+            '<button type="button" class="chk-edit-btn" data-sr="' + p.sr + '" title="Edit point">' +
+              '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="chk-options">' +
+            '<label><input type="radio" name="chk_' + p.sr + '" value="YES"> YES</label>' +
+            '<label><input type="radio" name="chk_' + p.sr + '" value="NO"> NO</label>' +
+            '<label><input type="radio" name="chk_' + p.sr + '" value="NA"> N.A.</label>' +
+          '</div>' +
+          '<input type="text" class="chk-remarks" name="rem_' + p.sr + '" placeholder="REMARKS (OPTIONAL)">' +
+        '</div>';
+      }).join('');
+      return '<div class="section-title">' + sec.no + '. ' + esc(sec.title) + '</div>' + items;
+    }).join('');
+
+    container.querySelectorAll('.chk-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sr = Number(btn.getAttribute('data-sr'));
+        const point = CHECKLIST_SECTIONS.reduce((found, sec) => found || sec.points.find(p => p.sr === sr), null);
+        if(!point) return;
+        const updated = prompt('EDIT INSPECTION POINT:', point.text);
+        if(updated !== null && updated.trim()){
+          point.text = updated.trim();
+          const span = container.querySelector('.chk-text-value[data-sr="' + sr + '"]');
+          if(span) span.textContent = point.text;
+        }
+      });
+    });
+  }
+  renderChecklistForm();
+
+  // ================= 9. Other Observation / Remarks — dynamic rows =================
+  const remarksRowsWrap = document.getElementById('remarksRows');
+  const btnAddRemark = document.getElementById('btnAddRemark');
+
+  function addRemarkRow(value){
+    const row = document.createElement('div');
+    row.className = 'remark-row';
+    row.innerHTML = '<input type="text" class="remark-input" placeholder="TYPE OBSERVATION / REMARK">' +
+      '<button type="button" class="remark-remove-btn" title="Remove row">&times;</button>';
+    row.querySelector('.remark-input').value = value || '';
+    row.querySelector('.remark-remove-btn').addEventListener('click', () => row.remove());
+    remarksRowsWrap.appendChild(row);
+  }
+
+  function getRemarkLines(){
+    return Array.from(remarksRowsWrap.querySelectorAll('.remark-input'))
+      .map(inp => inp.value.trim())
+      .filter(Boolean);
+  }
+
+  btnAddRemark.addEventListener('click', () => addRemarkRow());
+  addRemarkRow();
+
+  // ---- Certificate validity (Police / Medical / FSSAI), same rules as vendor-list.html ----
+  const CERT_DEFS = [
+    { fileKey: 'policeCertificate',  dateKey: 'policeValidUpto',  label: 'POLICE VERIFICATION' },
+    { fileKey: 'medicalCertificate', dateKey: 'medicalValidUpto', label: 'MEDICAL CERT.' },
+    { fileKey: 'fssaiLicense',       dateKey: 'fssaiValidUpto',   label: 'FSSAI CERT.' }
+  ];
+
+  function formatDateDMY(iso){
+    if(!iso) return '';
+    const p = String(iso).split('-');
+    if(p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  function daysUntil(iso){
+    if(!iso) return null;
+    const d = new Date(iso + 'T00:00:00');
+    if(isNaN(d.getTime())) return null;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+
+  function certChipHtml(def, v){
+    const dateIso = v[def.dateKey];
+    const fileUrl = (v.documents || {})[def.fileKey];
+    let sub, cls;
+    if(!fileUrl && !dateIso){
+      sub = 'NOT UPLOADED'; cls = 'missing';
+    } else if(!dateIso){
+      sub = 'NO EXPIRY DATE SET'; cls = 'missing';
+    } else {
+      const days = daysUntil(dateIso);
+      const dateStr = formatDateDMY(dateIso);
+      const daysLabel = days < 0
+        ? '(EXPIRED ' + Math.abs(days) + ' DAY' + (Math.abs(days) === 1 ? '' : 'S') + ' AGO)'
+        : '(' + days + ' DAY' + (days === 1 ? '' : 'S') + ' LEFT)';
+      sub = 'EXP. ' + dateStr + ' ' + daysLabel;
+      cls = (days !== null && days <= 30) ? 'warn' : 'ok';
+    }
+    return '<div class="cert-chip ' + cls + '"><b>' + esc(def.label) + '</b> : ' + esc(sub) + '</div>';
+  }
+
+  const staffCertsField = document.getElementById('staffCertsField');
+  const staffCertsList = document.getElementById('staffCertsList');
+
+  function renderStaffCertDetails(){
+    const staff = Object.values(selectedStaff);
+    if(!staff.length){
+      staffCertsField.style.display = 'none';
+      staffCertsList.innerHTML = '';
+      return;
+    }
+    staffCertsField.style.display = '';
+    staffCertsList.innerHTML = staff.map(v => {
+      const desig = v.designation ? '<span class="desig">' + esc(v.designation) + '</span>' : '';
+      const chips = CERT_DEFS.map(def => certChipHtml(def, v)).join('');
+      return '<div class="staff-cert-card">' +
+        '<div class="staff-cert-name">' + esc(v.name || 'UNNAMED') + desig + '</div>' +
+        chips +
+      '</div>';
+    }).join('');
+  }
+
+  function refreshStaffOptionsForUnit(stationValue, unitValue){
+    selectedStaff = {};
+    const sKey = normKey(stationValue);
+    const uKey = normKey(unitValue);
+    if(!sKey || !uKey){
+      resetStaffSelect('SELECT UNIT FIRST');
+      return;
+    }
+    staffOptions = allVendors.filter(v => normKey(v.station) === sKey && normKey(v.unitName) === uKey);
+    staffTrigger.disabled = false;
+    renderStaffPanel();
+    updateStaffTriggerLabel();
+    renderStaffCertDetails();
+  }
+
+  staffTrigger.addEventListener('click', () => {
+    if(staffTrigger.disabled) return;
+    const opening = !staffPanel.classList.contains('show');
+    staffPanel.classList.toggle('show', opening);
+    staffTrigger.classList.toggle('open', opening);
+  });
+
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('#staffWrap')){
+      staffPanel.classList.remove('show');
+      staffTrigger.classList.remove('open');
+    }
+  });
+
+  resetStaffSelect();
+  loadVendorList();
+
+  // ---- Date of inspection: default to today, always shown as DD/MM/YYYY ----
+  const dateInput = document.getElementById('inspectionDate');
+  const dateDisplay = document.getElementById('inspectionDateDisplay');
+
+  function todayISO(){
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + mm + '-' + dd;
+  }
+
+  function updateDateDisplay(){
+    if(dateInput.value){
+      const p = dateInput.value.split('-');
+      dateDisplay.textContent = p[2] + '/' + p[1] + '/' + p[0];
+    } else {
+      dateDisplay.textContent = 'DD/MM/YYYY';
+    }
+  }
+
+  dateInput.value = todayISO();
+  updateDateDisplay();
+  dateInput.addEventListener('change', updateDateDisplay);
+
+  // ---- Toast helper ----
+  const toast = document.getElementById('toast');
+  function showToast(msg, isError){
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  // ---- Start Inspection ----
+  const form = document.getElementById('inspectionForm');
+  const fitStage = document.getElementById('fitStage');
+  const reportView = document.getElementById('reportView');
+
+  function certWord(def, v){
+    const dateIso = v[def.dateKey];
+    const fileUrl = (v.documents || {})[def.fileKey];
+    if(!fileUrl && !dateIso) return 'NOT AVAILABLE';
+    if(!dateIso) return 'NOT AVAILABLE';
+    const days = daysUntil(dateIso);
+    if(days === null) return 'NOT AVAILABLE';
+    return days < 0 ? 'EXPIRED' : 'VALID';
+  }
+
+  function stallPartOfUnit(unitName){
+    const s = String(unitName || '').trim();
+    if(!s) return 'UNIT';
+    const idx = s.lastIndexOf('-');
+    if(idx === -1) return s;
+    const part = s.slice(idx + 1).trim();
+    return part || s;
+  }
+
+  function toTitleCase(s){
+    return String(s || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function staffDetailBlockHtml(v, unitName){
+    const name = toTitleCase(v.name || 'Unnamed');
+    const stallPart = toTitleCase(stallPartOfUnit(unitName));
+    const policeWord = toTitleCase(certWord(CERT_DEFS[0], v));
+    const medicalWord = toTitleCase(certWord(CERT_DEFS[1], v));
+    const fssaiWord = toTitleCase(certWord(CERT_DEFS[2], v));
+    const sentence = 'Shri ' + esc(name) + ' was on duty at ' + esc(stallPart) + ' unit. Police Verification Certificate ' +
+      '<b>' + policeWord + '</b>, Medical Certificate <b>' + medicalWord + '</b>, and FSSAI License <b>' + fssaiWord + '</b>.';
+    return '<div class="staff-line">* ' + sentence + '</div>';
+  }
+
+  function radioVal(name){
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function buildChecklistReportHtml(){
+    return CHECKLIST_SECTIONS.map(sec => {
+      const lines = sec.points.map(p => {
+        const ans = radioVal('chk_' + p.sr) || 'NOT MARKED';
+        if(ans === 'NA') return '';
+        const rem = (document.querySelector('input[name="rem_' + p.sr + '"]').value || '').trim();
+        const remHtml = rem ? ' <span class="rem">(Remarks: ' + esc(rem) + ')</span>' : '';
+        return '<div class="rpt-line">* ' + esc(p.text) + ' — <b>' + esc(ans) + '</b>' + remHtml + '</div>';
+      }).filter(Boolean).join('');
+      return '<div class="rpt-section-title">' + sec.no + '. ' + esc(sec.title) + ' :</div>' + lines;
+    }).join('');
+  }
+
+  function staffSentencePlain(v, unitName){
+    const name = toTitleCase(v.name || 'Unnamed');
+    const stallPart = toTitleCase(stallPartOfUnit(unitName));
+    const policeWord = toTitleCase(certWord(CERT_DEFS[0], v));
+    const medicalWord = toTitleCase(certWord(CERT_DEFS[1], v));
+    const fssaiWord = toTitleCase(certWord(CERT_DEFS[2], v));
+    return 'Shri ' + name + ' was on duty at ' + stallPart + ' unit. Police Verification Certificate ' +
+      policeWord + ', Medical Certificate ' + medicalWord + ', and FSSAI License ' + fssaiWord + '.';
+  }
+
+  let lastReportData = null;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(!form.checkValidity()){
+      form.reportValidity();
+      return;
+    }
+    const onDutyStaff = Object.values(selectedStaff);
+    if(!onDutyStaff.length){
+      showToast('PLEASE SELECT AT LEAST ONE ON DUTY STAFF / कृपया कम से कम एक स्टाफ चुनें', true);
+      return;
+    }
+    const payload = {
+      inspectorName: document.getElementById('inspectorName').value,
+      station: stationSelect.value,
+      unitName: unitInput.value,
+      inspectionDate: dateInput.value,
+      onDutyStaff: onDutyStaff.map(v => ({ aadhar: v.aadhar, name: v.name, designation: v.designation }))
+    };
+    console.log('Inspection started', payload);
+
+    const dateDMY = formatDateDMY(payload.inspectionDate);
+
+    // Populate and switch to the report screen.
+    document.getElementById('rInspector').textContent = payload.inspectorName;
+    document.getElementById('rDate').textContent = dateDMY;
+    document.getElementById('rUnit').textContent = payload.unitName;
+    document.getElementById('rStation').textContent = payload.station;
+    document.getElementById('rStaffList').innerHTML = onDutyStaff.map(v => staffDetailBlockHtml(v, payload.unitName)).join('');
+    document.getElementById('rChecklist').innerHTML = buildChecklistReportHtml();
+
+    const remarkLines = getRemarkLines();
+    document.getElementById('rRemarks').innerHTML = remarkLines.length
+      ? '<div class="rpt-section-title">9. OTHER OBSERVATION / REMARKS :</div>' +
+        remarkLines.map(l => '<div class="rpt-line">* ' + esc(l) + '</div>').join('')
+      : '';
+
+    // Keep the plain data around for PDF generation.
+    lastReportData = {
+      inspectorName: payload.inspectorName,
+      dateDMY: dateDMY,
+      unitName: payload.unitName,
+      station: payload.station,
+      staffSentences: onDutyStaff.map(v => staffSentencePlain(v, payload.unitName)),
+      checklistSections: CHECKLIST_SECTIONS.map(sec => ({
+        no: sec.no,
+        title: sec.title,
+        points: sec.points
+          .map(p => ({ text: p.text, ans: radioVal('chk_' + p.sr) || 'NOT MARKED', rem: (document.querySelector('input[name="rem_' + p.sr + '"]').value || '').trim() }))
+          // Items left unmarked aren't shown in the PDF.
+          .filter(p => p.ans !== 'NA' && p.ans !== 'NOT MARKED')
+      })),
+      otherRemarks: remarkLines
+    };
+
+    fitStage.style.display = 'none';
+    reportView.style.display = 'block';
+    window.scrollTo(0, 0);
+  });
+
+  document.getElementById('btnBack').addEventListener('click', () => {
+    reportView.style.display = 'none';
+    fitStage.style.display = '';
+    window.scrollTo(0, 0);
+  });
+
+  // ================= PDF generation (pdf-lib) — A4, preview first, download on demand =================
+  const pdfOverlay = document.getElementById('pdfOverlay');
+  const pdfLoading = document.getElementById('pdfLoading');
+  const pdfFrame = document.getElementById('pdfFrame');
+  const pdfActions = document.getElementById('pdfActions');
+  const pdfDownloadLink = document.getElementById('pdfDownloadLink');
+  let pdfBlobUrl = null;
+
+  async function generateReportPdf(){
+    if(!lastReportData) return;
+    const PAGE_W = 595.28, PAGE_H = 841.89;
+    const MARGIN_LEFT = 58, MARGIN_RIGHT = 40, MARGIN_TOP = 40, MARGIN_BOTTOM = 40;
+    const CONTENT_W = PAGE_W - MARGIN_LEFT - MARGIN_RIGHT;
+
+    const doc = await PDFLib.PDFDocument.create();
+    const reg = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+    const bold = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    const BLACK = PDFLib.rgb(0, 0, 0);
+
+    let hindiFont = null;
+    try{
+      if(typeof fontkit !== 'undefined' && typeof doc.registerFontkit === 'function'){
+        doc.registerFontkit(fontkit);
+        const hindiUrl = 'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf';
+        const hindiBytes = await fetch(hindiUrl).then(r => { if(!r.ok) throw new Error('font fetch failed'); return r.arrayBuffer(); });
+        hindiFont = await doc.embedFont(hindiBytes);
+      }
+    } catch(e){ hindiFont = null; }
+
+    let page = doc.addPage([PAGE_W, PAGE_H]);
+    let y = PAGE_H - MARGIN_TOP;
+
+    function newPage(){
+      page = doc.addPage([PAGE_W, PAGE_H]);
+      y = PAGE_H - MARGIN_TOP;
+    }
+
+    function ensureSpace(need){
+      if(y - need < MARGIN_BOTTOM) newPage();
+    }
+
+    function wrap(text, font, size, maxWidth){
+      const words = String(text || '').split(/\s+/).filter(Boolean);
+      const lines = [];
+      let line = '';
+      words.forEach(w => {
+        const test = line ? line + ' ' + w : w;
+        if(font.widthOfTextAtSize(test, size) > maxWidth && line){
+          lines.push(line);
+          line = w;
+        } else {
+          line = test;
+        }
+      });
+      if(line) lines.push(line);
+      return lines.length ? lines : [''];
+    }
+
+    function drawParagraph(text, opts){
+      opts = opts || {};
+      const font = opts.bold ? bold : reg;
+      const size = opts.size || 10;
+      const lh = opts.lineHeight || (size + 4);
+      const indent = opts.indent || 0;
+      const hangingIndent = opts.hangingIndent || 0;
+      const color = opts.color || BLACK;
+      const maxWidth = CONTENT_W - indent - hangingIndent;
+      const lines = wrap(text, font, size, maxWidth);
+      lines.forEach((ln, i) => {
+        ensureSpace(lh);
+        let x = MARGIN_LEFT + indent + (i > 0 ? hangingIndent : 0);
+        if(opts.center){
+          const w = font.widthOfTextAtSize(ln, size);
+          x = MARGIN_LEFT + (CONTENT_W - w) / 2;
+        }
+        page.drawText(ln, { x: x, y: y - size, size: size, font: font, color: color });
+        y -= lh;
+      });
+    }
+
+    function drawGap(h){ ensureSpace(h); y -= h; }
+
+    function drawRule(){
+      ensureSpace(10);
+      page.drawLine({ start: { x: MARGIN_LEFT, y: y }, end: { x: PAGE_W - MARGIN_RIGHT, y: y }, thickness: 1.2, color: BLACK });
+      y -= 12;
+    }
+
+    // ---- Header ----
+    drawParagraph('CATERING INSPECTION CARRIED OUT BY ' + lastReportData.inspectorName + ' ON ' + lastReportData.dateDMY,
+      { bold: true, size: 12.5, center: true, lineHeight: 17 });
+    drawGap(17);
+    drawParagraph('NAME OF UNIT : ' + lastReportData.unitName + ' - ' + lastReportData.station,
+      { bold: true, size: 11, lineHeight: 15 });
+    drawRule();
+
+    // ---- 1. On Duty Staff ----
+    drawParagraph('1. ON DUTY STAFF :', { bold: true, size: 11, lineHeight: 16 });
+    lastReportData.staffSentences.forEach(s => {
+      drawParagraph('*  ' + s, { size: 10, lineHeight: 13.5, hangingIndent: 10 });
+      drawGap(3);
+    });
+    drawGap(6);
+
+    // ---- Checklist sections 2-8 ----
+    lastReportData.checklistSections.forEach(sec => {
+      drawParagraph(sec.no + '. ' + sec.title + ' :', { bold: true, size: 11, lineHeight: 16 });
+      sec.points.forEach(p => {
+        let line = '*  ' + p.text + ' — ' + p.ans;
+        if(p.rem) line += '  (Remarks: ' + p.rem + ')';
+        drawParagraph(line, { size: 10, lineHeight: 13.5, hangingIndent: 10, bold: p.ans === 'NO' });
+        drawGap(3);
+      });
+      drawGap(6);
+    });
+
+    // ---- 9. Other Observation / Remarks ----
+    if(lastReportData.otherRemarks && lastReportData.otherRemarks.length){
+      drawParagraph('9. OTHER OBSERVATION / REMARKS :', { bold: true, size: 11, lineHeight: 16 });
+      lastReportData.otherRemarks.forEach(r => {
+        drawParagraph('*  ' + r, { size: 10, lineHeight: 13.5, hangingIndent: 10 });
+        drawGap(3);
+      });
+      drawGap(6);
+    }
+
+    // ---- Inspecting Official name + stamp, bottom-right of the final page ----
+    // Name sits centered directly above the stamp box; stamp uses the navy rounded-box design.
+    function drawCenteredIn(text, font, size, yy, boxX, boxW, color){
+      const w = font.widthOfTextAtSize(text, size);
+      page.drawText(text, { x: boxX + (boxW - w) / 2, y: yy, size: size, font: font, color: color || BLACK });
+    }
+    function roundedRectPath(x, y, w, h, r){
+      return 'M ' + (x+r) + ' ' + y +
+        ' H ' + (x+w-r) +
+        ' A ' + r + ' ' + r + ' 0 0 1 ' + (x+w) + ' ' + (y+r) +
+        ' V ' + (y+h-r) +
+        ' A ' + r + ' ' + r + ' 0 0 1 ' + (x+w-r) + ' ' + (y+h) +
+        ' H ' + (x+r) +
+        ' A ' + r + ' ' + r + ' 0 0 1 ' + x + ' ' + (y+h-r) +
+        ' V ' + (y+r) +
+        ' A ' + r + ' ' + r + ' 0 0 1 ' + (x+r) + ' ' + y +
+        ' Z';
+    }
+
+    const NAVY = PDFLib.rgb(19/255, 56/255, 140/255);
+    const STAMP_FONT_SIZE = 10;
+    const STAMP_LINE_H   = 15;
+    const STAMP_PAD_X    = 18;
+    const STAMP_PAD_Y    = 10;
+    const STAMP_RADIUS   = 6;
+    const STAMP_BORDER_W = 1.4;
+    const NAME_FONT_SIZE = 13;
+    const NAME_ROW_H     = 18;
+    const NAME_STAMP_GAP = NAME_ROW_H / 2; // half a row of space between the name and the stamp
+
+    const stampLines = [];
+    if(hindiFont) stampLines.push({ text: 'मंडल वाणिज्य निरीक्षक', font: hindiFont });
+    stampLines.push({ text: 'DIVISIONAL COMMERCIAL INSPECTOR', font: bold });
+    if(hindiFont) stampLines.push({ text: 'राजकोट मंडल (प. रे.)', font: hindiFont });
+    stampLines.push({ text: 'RAJKOT DIVISION (W.R.)', font: bold });
+
+    const inspectorNameDisplay = '(' + lastReportData.inspectorName + ')';
+
+    let stampInnerW = 0;
+    stampLines.forEach(l => {
+      const w = l.font.widthOfTextAtSize(l.text, STAMP_FONT_SIZE);
+      if(w > stampInnerW) stampInnerW = w;
+    });
+    const nameW = bold.widthOfTextAtSize(inspectorNameDisplay, NAME_FONT_SIZE);
+    const STAMP_W = Math.max(stampInnerW, nameW) + STAMP_PAD_X * 2;
+    const STAMP_H = stampLines.length * STAMP_LINE_H + STAMP_PAD_Y * 2 - (STAMP_LINE_H - STAMP_FONT_SIZE);
+
+    ensureSpace(STAMP_H + NAME_ROW_H + NAME_STAMP_GAP + 20);
+    const stampBoxX = PAGE_W - MARGIN_RIGHT - STAMP_W;
+    const stampBoxY = y - NAME_ROW_H - NAME_STAMP_GAP - STAMP_H;
+
+    // Name: bold, larger, in parentheses — sits above the stamp with half a row of space below it
+    drawCenteredIn(inspectorNameDisplay, bold, NAME_FONT_SIZE, y - (NAME_FONT_SIZE + 2), stampBoxX, STAMP_W);
+    y -= (NAME_ROW_H + NAME_STAMP_GAP);
+
+    // Stamp: navy rounded box, exactly below the name
+    page.drawSvgPath(roundedRectPath(0, 0, STAMP_W, STAMP_H, STAMP_RADIUS), {
+      x: stampBoxX,
+      y: stampBoxY + STAMP_H,
+      borderColor: NAVY,
+      borderWidth: STAMP_BORDER_W,
+      borderOpacity: 0.8
+    });
+
+    let sy = stampBoxY + STAMP_H - STAMP_PAD_Y - STAMP_FONT_SIZE;
+    stampLines.forEach(l => {
+      drawCenteredIn(l.text, l.font, STAMP_FONT_SIZE, sy, stampBoxX, STAMP_W, NAVY);
+      sy -= STAMP_LINE_H;
+    });
+
+    y = stampBoxY - 10;
+
+    const bytes = await doc.save();
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
+  document.getElementById('btnGeneratePdf').addEventListener('click', async () => {
+    pdfOverlay.classList.add('show');
+    pdfLoading.style.display = 'flex';
+    pdfFrame.style.display = 'none';
+    pdfActions.style.display = 'none';
+    if(pdfBlobUrl){ URL.revokeObjectURL(pdfBlobUrl); pdfBlobUrl = null; }
+    try{
+      const blob = await generateReportPdf();
+      pdfBlobUrl = URL.createObjectURL(blob);
+      pdfFrame.src = pdfBlobUrl;
+      pdfDownloadLink.href = pdfBlobUrl;
+      const fileStation = (lastReportData.station || 'report').replace(/[^A-Za-z0-9]+/g, '-');
+      const fileDate = (lastReportData.dateDMY || '').replace(/\//g, '-');
+      pdfDownloadLink.setAttribute('download', 'inspection-' + fileStation + '-' + fileDate + '.pdf');
+      pdfLoading.style.display = 'none';
+      pdfFrame.style.display = 'block';
+      pdfActions.style.display = 'block';
+    } catch(err){
+      pdfLoading.innerHTML = '<span>COULD NOT GENERATE PDF. PLEASE TRY AGAIN.</span>';
+      console.error(err);
+    }
+  });
+
+  document.getElementById('btnClosePdf').addEventListener('click', () => {
+    pdfOverlay.classList.remove('show');
+    pdfFrame.src = 'about:blank';
+  });
+</script>
+
+</body>
+</html>

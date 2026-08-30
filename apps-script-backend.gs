@@ -14,6 +14,10 @@
  *     that always points at whatever the CURRENT vendor-report.pdf is for
  *     that Aadhar — this is what the QR code encodes, both the one saved
  *     into the Drive folder and the one embedded on the PDF itself.
+ *   - Manages the separate "catering_unit" master list (Sr. No. / Name of
+ *     Catering Unit / Station) used to populate the STATION and NAME OF
+ *     UNIT dropdowns on vendor-details.html, and the table + add/edit
+ *     overlay on catering-unit.html.
  *
  * ---- SETUP ----
  * 1. Go to https://script.google.com and create a New Project.
@@ -26,8 +30,9 @@
  *      - Who has access: "Anyone"
  *    Click Deploy, and authorize the requested Drive/Sheets permissions.
  * 5. Copy the "Web app URL" you get after deploying.
- * 6. Open vendor-details.html and paste that URL into the
- *    APPS_SCRIPT_URL constant near the top of the <script> section.
+ * 6. Open vendor-details.html, vendor-list.html and catering-unit.html and
+ *    paste that URL into the APPS_SCRIPT_URL constant near the top of each
+ *    <script> section (it must be the SAME URL in all three files).
  * 7. Whenever you edit this script, use Deploy > Manage deployments >
  *    Edit (pencil icon) > New version, so the same URL picks up changes.
  *
@@ -50,6 +55,11 @@
 var SHEET_ID = '1LBAxObNxRTF2RVu8WlVMFw2UDq3C91Gztb9rRyP-rOY';
 var SHEET_NAME = 'catering_data';
 var DRIVE_FOLDER_ID = '186VQZH294gSTpl3VaNajAoraGseBM0Et';
+
+// ---- Catering Unit master list (simple 3-column sheet, separate tab) ----
+// Columns: A = Sr. No. (auto-incrementing), B = Name of Catering Unit, C = Station
+var CATERING_UNIT_SHEET_NAME = 'catering_unit';
+var CATERING_UNIT_HEADERS = ['Sr. No.', 'Name of Catering Unit', 'Station'];
 
 /** Strips everything except digits/letters, so "726655977066" and a Sheets-auto-converted
  *  number in the same cell always compare equal — this is what stops duplicate rows.
@@ -105,6 +115,15 @@ function doPost(e) {
   var lock = LockService.getScriptLock();
   try {
     var data = JSON.parse(e.postData.contents);
+
+    // ---- Catering Unit "add / edit record" — separate simple sheet, handled first ----
+    if (data.action === 'addCateringUnit') {
+      return doPost_addCateringUnit(data);
+    }
+    if (data.action === 'updateCateringUnit') {
+      return doPost_updateCateringUnit(data);
+    }
+
     var aadhar = normalizeAadhar(data.aadhar);
     if (!aadhar) {
       throw new Error('Aadhar Card No. is missing — cannot file this submission.');
@@ -261,6 +280,131 @@ function doPost(e) {
 }
 
 /**
+ * POST body: { action: 'addCateringUnit', name: '...', station: '...' }
+ * Appends a new row to the separate 'catering_unit' sheet (auto-incrementing
+ * Sr. No., Name of Catering Unit, Station). Uses its own lock so two
+ * near-simultaneous adds can never compute the same Sr. No.
+ */
+function doPost_addCateringUnit(data) {
+  var unitLock = LockService.getScriptLock();
+  try {
+    var name = String(data.name || '').trim();
+    var station = String(data.station || '').trim();
+    if (!name) throw new Error('Name of Catering Unit is required.');
+    if (!station) throw new Error('Station is required.');
+
+    unitLock.waitLock(30000);
+
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(CATERING_UNIT_SHEET_NAME);
+    if (!sheet) {
+      sheet = ss.insertSheet(CATERING_UNIT_SHEET_NAME);
+      sheet.appendRow(CATERING_UNIT_HEADERS);
+    }
+    var lastRow = sheet.getLastRow();
+    var srNo = lastRow >= 2 ? (lastRow - 1 + 1) : 1; // count of existing data rows + 1
+    sheet.appendRow([srNo, name, station]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        unit: { srNo: srNo, name: name, station: station }
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    try { unitLock.releaseLock(); } catch (releaseErr) { /* lock was never acquired — nothing to release */ }
+  }
+}
+
+/**
+ * POST body: { action: 'updateCateringUnit', srNo: N, name: '...', station: '...' }
+ * Finds the row in 'catering_unit' whose Sr. No. (column A) equals srNo and
+ * overwrites its Name / Station in place — used by catering-unit.html's
+ * edit overlay when the user taps an existing row. Sr. No. itself never
+ * changes. Uses its own lock so an edit can never race a concurrent add.
+ */
+function doPost_updateCateringUnit(data) {
+  var unitLock = LockService.getScriptLock();
+  try {
+    var srNo = parseInt(data.srNo, 10);
+    var name = String(data.name || '').trim();
+    var station = String(data.station || '').trim();
+    if (!srNo || isNaN(srNo)) throw new Error('Missing or invalid record to update.');
+    if (!name) throw new Error('Name of Catering Unit is required.');
+    if (!station) throw new Error('Station is required.');
+
+    unitLock.waitLock(30000);
+
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(CATERING_UNIT_SHEET_NAME);
+    if (!sheet) throw new Error('Catering unit list not found.');
+
+    var lastRow = sheet.getLastRow();
+    var rowIndex = -1;
+    if (lastRow >= 2) {
+      var srCol = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var r = 0; r < srCol.length; r++) {
+        if (parseInt(srCol[r][0], 10) === srNo) { rowIndex = r + 2; break; }
+      }
+    }
+    if (rowIndex === -1) throw new Error('Record not found — it may have been removed.');
+
+    sheet.getRange(rowIndex, 2, 1, 2).setValues([[name, station]]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: true,
+        unit: { srNo: srNo, name: name, station: station }
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    try { unitLock.releaseLock(); } catch (releaseErr) { /* lock was never acquired — nothing to release */ }
+  }
+}
+
+/**
+ * GET /exec?catUnits=1
+ * Returns every row of the 'catering_unit' sheet as a JSON array of
+ * { srNo, name, station }, for the Catering Unit tab's table, and for the
+ * STATION / NAME OF UNIT dropdowns on vendor-details.html.
+ */
+function doGet_listCateringUnits() {
+  try {
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(CATERING_UNIT_SHEET_NAME);
+    var units = [];
+    if (sheet) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow >= 2) {
+        var values = sheet.getRange(2, 1, lastRow - 1, 3).getValues();
+        for (var i = 0; i < values.length; i++) {
+          units.push({
+            srNo: values[i][0] || (i + 1),
+            name: values[i][1] || '',
+            station: values[i][2] || ''
+          });
+        }
+      }
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true, units: units }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, error: err.message, units: [] }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
  * GET /exec?list=1
  * Returns EVERY saved vendor record (one per Aadhar row) as a JSON array,
  * for the Vendor List page's table + on-screen report view. Document/photo
@@ -362,9 +506,14 @@ function doGet(e) {
   var viewParam = e && e.parameter ? e.parameter.view : null;
   var fetchDocsParam = e && e.parameter ? e.parameter.fetchDocs : null;
   var listParam = e && e.parameter ? e.parameter.list : null;
+  var catUnitsParam = e && e.parameter ? e.parameter.catUnits : null;
 
   if (listParam) {
     return doGet_listAll();
+  }
+
+  if (catUnitsParam) {
+    return doGet_listCateringUnits();
   }
 
   if (fetchDocsParam && aadharParam) {
@@ -468,7 +617,7 @@ function doGet(e) {
     }
   }
   return ContentService
-    .createTextOutput(JSON.stringify({ status: 'Catering Vendor Backend is running.', version: 'v2-qr-diagnostics' }))
+    .createTextOutput(JSON.stringify({ status: 'Catering Vendor Backend is running.', version: 'v3-unit-dropdowns-edit' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 

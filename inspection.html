@@ -118,7 +118,7 @@
   .chk-item:last-child{border-bottom:none;}
   .chk-text{font-size:11.5px;font-weight:600;color:var(--navy-800);margin-bottom:6px;line-height:1.4;display:flex;align-items:flex-start;gap:6px;}
   .chk-text b{color:var(--navy-900);flex:0 0 auto;}
-  .chk-text-value{flex:1 1 auto;}
+  .chk-text-value{flex:1 1 auto;text-transform:uppercase;} /* display only — underlying point text stays normal-case for the PDF */
   .chk-edit-btn{
     flex:0 0 auto;border:none;background:none;padding:2px;cursor:pointer;
     color:var(--cyan-500);line-height:0;margin-top:1px;
@@ -284,6 +284,7 @@
   }
   .rpt-line b{color:var(--navy-900);}
   .rpt-line .rem{color:var(--muted);font-style:italic;}
+  .rpt-point-text{text-transform:uppercase;} /* display only — PDF still draws the original normal-case text */
   .rpt-block{font-size:12.5px;line-height:1.7;color:var(--navy-800);margin:0 0 8px;}
   .rpt-block b{color:var(--navy-900);}
   .sig-block{margin-top:18px;font-size:12.5px;line-height:1.9;color:var(--navy-800);}
@@ -368,6 +369,18 @@
   }
   .icon-add-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.4;}
   .icon-add-btn:active{transform:translateY(1px);}
+  .icon-add-btn:disabled{opacity:0.4;cursor:default;}
+  .icon-add-btn:disabled:active{transform:none;}
+  .icon-danger-btn{background:linear-gradient(135deg,#c02f3f,var(--danger));border-color:var(--danger);}
+
+  /* ---- On Duty Staff: Unauthorized Vendor checkbox + remarks ---- */
+  .unauth-row{margin-top:8px;}
+  .unauth-label{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    font-size:10.5px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:0.2px;
+  }
+  .unauth-label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--danger);flex:0 0 auto;}
+  .unauth-label .hi{color:var(--muted);}
 
   /* ---- Mini modal: add inspector ---- */
   .mini-overlay{
@@ -408,6 +421,12 @@
         <select id="inspectorName" name="inspectorName" required disabled>
           <option value="" disabled selected>LOADING…</option>
         </select>
+        <button type="button" class="icon-add-btn" id="btnEditInspector" title="EDIT SELECTED INSPECTOR" disabled>
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <button type="button" class="icon-add-btn icon-danger-btn" id="btnDeleteInspector" title="DELETE SELECTED INSPECTOR" disabled>
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+        </button>
         <button type="button" class="icon-add-btn" id="btnAddInspector" title="ADD NEW INSPECTOR">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
@@ -442,6 +461,17 @@
         <button type="button" class="ms-trigger placeholder" id="staffTrigger" disabled>SELECT STATION &amp; UNIT FIRST</button>
         <div class="ms-panel" id="staffPanel"></div>
       </div>
+      <div class="unauth-row">
+        <label class="unauth-label">
+          <input type="checkbox" id="unauthorizedVendorChk">
+          UNAUTHORIZED VENDOR <span class="hi">/ अनधिकृत विक्रेता (यदि कोई वेंडर सूची में न मिले)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field" id="unauthorizedRemarksField" style="display:none;">
+      <label for="unauthorizedRemarks">UNAUTHORIZED VENDOR — NAME <span class="hi">/ अनधिकृत विक्रेता का नाम</span> <span class="req">*</span></label>
+      <input type="text" id="unauthorizedRemarks" name="unauthorizedRemarks" placeholder="ENTER THE NAME OF UNAUTHORIZED VENDOR">
     </div>
 
     <div class="field" id="staffCertsField" style="display:none;">
@@ -504,7 +534,7 @@
 
 <div class="mini-overlay" id="addInspectorOverlay">
   <div class="mini-modal">
-    <h3>ADD INSPECTOR <span class="hi" style="text-transform:none;">/ निरीक्षक जोड़ें</span></h3>
+    <h3 id="inspectorModalTitle">ADD INSPECTOR <span class="hi" style="text-transform:none;">/ निरीक्षक जोड़ें</span></h3>
     <div class="field">
       <label for="newInspName">NAME <span class="hi">/ नाम</span> <span class="req">*</span></label>
       <input type="text" id="newInspName" placeholder="FULL NAME">
@@ -635,18 +665,31 @@
 
   // ================= Inspecting Official — sourced from the "inspector_list" sheet, column E =================
   const inspectorSelect = document.getElementById('inspectorName');
-  let INSPECTORS = [];
+  const btnEditInspector = document.getElementById('btnEditInspector');
+  const btnDeleteInspector = document.getElementById('btnDeleteInspector');
+  let INSPECTORS = []; // [{srNo, name, designation, station, display}]
+
+  function getSelectedInspector(){
+    return INSPECTORS.find(i => i.display === inspectorSelect.value) || null;
+  }
+
+  function updateInspectorActionButtons(){
+    const has = !!getSelectedInspector();
+    btnEditInspector.disabled = !has;
+    btnDeleteInspector.disabled = !has;
+  }
 
   function populateInspectorSelect(){
     const prevValue = inspectorSelect.value;
     inspectorSelect.innerHTML = '<option value="" disabled selected>SELECT NAME</option>';
-    INSPECTORS.forEach(display => {
+    INSPECTORS.forEach(insp => {
       const opt = document.createElement('option');
-      opt.value = display; opt.textContent = display;
+      opt.value = insp.display; opt.textContent = insp.display;
       inspectorSelect.appendChild(opt);
     });
     inspectorSelect.disabled = false;
-    if(prevValue && INSPECTORS.includes(prevValue)) inspectorSelect.value = prevValue;
+    if(prevValue && INSPECTORS.some(i => i.display === prevValue)) inspectorSelect.value = prevValue;
+    updateInspectorActionButtons();
   }
 
   async function loadInspectors(){
@@ -666,19 +709,35 @@
   }
 
   loadInspectors();
+  inspectorSelect.addEventListener('change', updateInspectorActionButtons);
 
-  // ---- Add inspector modal ----
+  // ---- Add / Edit inspector modal (same modal, mode driven by editingInspectorSrNo) ----
   const addInspectorOverlay = document.getElementById('addInspectorOverlay');
   const btnSaveAddInspector = document.getElementById('btnSaveAddInspector');
+  const inspectorModalTitle = document.getElementById('inspectorModalTitle');
+  let editingInspectorSrNo = null;
 
-  document.getElementById('btnAddInspector').addEventListener('click', () => {
-    document.getElementById('newInspName').value = '';
-    document.getElementById('newInspDesignation').value = '';
-    document.getElementById('newInspStation').value = '';
+  function openInspectorModal(insp){
+    editingInspectorSrNo = insp ? insp.srNo : null;
+    inspectorModalTitle.innerHTML = insp
+      ? 'EDIT INSPECTOR <span class="hi" style="text-transform:none;">/ निरीक्षक संपादित करें</span>'
+      : 'ADD INSPECTOR <span class="hi" style="text-transform:none;">/ निरीक्षक जोड़ें</span>';
+    document.getElementById('newInspName').value = insp ? insp.name : '';
+    document.getElementById('newInspDesignation').value = insp ? insp.designation : '';
+    document.getElementById('newInspStation').value = insp ? insp.station : '';
     addInspectorOverlay.classList.add('show');
+  }
+
+  document.getElementById('btnAddInspector').addEventListener('click', () => openInspectorModal(null));
+
+  btnEditInspector.addEventListener('click', () => {
+    const insp = getSelectedInspector();
+    if(!insp) return;
+    openInspectorModal(insp);
   });
 
   document.getElementById('btnCancelAddInspector').addEventListener('click', () => {
+    editingInspectorSrNo = null;
     addInspectorOverlay.classList.remove('show');
   });
 
@@ -690,25 +749,52 @@
       showToast('PLEASE FILL NAME, DESIGNATION & STATION / कृपया सभी फ़ील्ड भरें', true);
       return;
     }
+    const isEdit = !!editingInspectorSrNo;
     btnSaveAddInspector.disabled = true;
     btnSaveAddInspector.textContent = 'SAVING…';
     try{
       if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) throw new Error('backend not configured');
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'addInspector', name: name, designation: designation, station: station })
-      });
+      const body = isEdit
+        ? { action: 'updateInspector', srNo: editingInspectorSrNo, name: name, designation: designation, station: station }
+        : { action: 'addInspector', name: name, designation: designation, station: station };
+      const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(body) });
       const data = await res.json();
       if(!data || !data.success) throw new Error((data && data.error) || 'save failed');
       await loadInspectors();
       if(data.inspector && data.inspector.display) inspectorSelect.value = data.inspector.display;
+      updateInspectorActionButtons();
       addInspectorOverlay.classList.remove('show');
-      showToast('INSPECTOR ADDED / निरीक्षक जोड़ा गया');
+      showToast(isEdit ? 'INSPECTOR UPDATED / निरीक्षक अपडेट किया गया' : 'INSPECTOR ADDED / निरीक्षक जोड़ा गया');
     } catch(err){
       showToast('COULD NOT SAVE: ' + err.message, true);
     } finally {
       btnSaveAddInspector.disabled = false;
       btnSaveAddInspector.textContent = 'SAVE';
+      editingInspectorSrNo = null;
+    }
+  });
+
+  // ---- Delete inspector ----
+  btnDeleteInspector.addEventListener('click', async () => {
+    const insp = getSelectedInspector();
+    if(!insp) return;
+    if(!confirm('DELETE INSPECTOR "' + insp.name + '"? / क्या आप वाकई "' + insp.name + '" को हटाना चाहते हैं?')) return;
+    btnDeleteInspector.disabled = true;
+    try{
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) throw new Error('backend not configured');
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'deleteInspector', srNo: insp.srNo })
+      });
+      const data = await res.json();
+      if(!data || !data.success) throw new Error((data && data.error) || 'delete failed');
+      await loadInspectors();
+      inspectorSelect.value = '';
+      showToast('INSPECTOR DELETED / निरीक्षक हटाया गया');
+    } catch(err){
+      showToast('COULD NOT DELETE: ' + err.message, true);
+    } finally {
+      updateInspectorActionButtons();
     }
   });
 
@@ -1006,6 +1092,27 @@
   resetStaffSelect();
   loadVendorList();
 
+  // ---- Unauthorized Vendor (used when no vendor from the list was found on duty) ----
+  const unauthorizedChk = document.getElementById('unauthorizedVendorChk');
+  const unauthorizedRemarksField = document.getElementById('unauthorizedRemarksField');
+  const unauthorizedRemarksInput = document.getElementById('unauthorizedRemarks');
+
+  unauthorizedChk.addEventListener('change', () => {
+    const checked = unauthorizedChk.checked;
+    unauthorizedRemarksField.style.display = checked ? '' : 'none';
+    if(checked){
+      selectedStaff = {};
+      updateStaffTriggerLabel();
+      renderStaffCertDetails();
+      staffPanel.classList.remove('show');
+      staffTrigger.classList.remove('open');
+      staffTrigger.disabled = true;
+    } else {
+      unauthorizedRemarksInput.value = '';
+      staffTrigger.disabled = !(stationSelect.value && unitInput.value);
+    }
+  });
+
   // ---- Date of inspection: default to today, always shown as DD/MM/YYYY ----
   const dateInput = document.getElementById('inspectionDate');
   const dateDisplay = document.getElementById('inspectionDateDisplay');
@@ -1087,13 +1194,14 @@
     return CHECKLIST_SECTIONS.map(sec => {
       const lines = sec.points.map(p => {
         const ans = radioVal('chk_' + p.sr) || 'NOT MARKED';
-        if(ans === 'NA') return '';
+        if(ans === 'NA' || ans === 'NOT MARKED') return '';
         const rem = (document.querySelector('input[name="rem_' + p.sr + '"]').value || '').trim();
         const remHtml = rem ? ' <span class="rem">(Remarks: ' + esc(rem) + ')</span>' : '';
-        return '<div class="rpt-line">* ' + esc(p.text) + ' — <b>' + esc(ans) + '</b>' + remHtml + '</div>';
+        return '<div class="rpt-line">* <span class="rpt-point-text">' + esc(p.text) + '</span> — <b>' + esc(ans) + '</b>' + remHtml + '</div>';
       }).filter(Boolean).join('');
+      if(!lines) return '';
       return '<div class="rpt-section-title">' + sec.no + '. ' + esc(sec.title) + ' :</div>' + lines;
-    }).join('');
+    }).filter(Boolean).join('');
   }
 
   function staffSentencePlain(v, unitName){
@@ -1114,8 +1222,15 @@
       form.reportValidity();
       return;
     }
+    const isUnauthorized = unauthorizedChk.checked;
     const onDutyStaff = Object.values(selectedStaff);
-    if(!onDutyStaff.length){
+    const unauthorizedRemarksVal = unauthorizedRemarksInput.value.trim();
+    if(isUnauthorized){
+      if(!unauthorizedRemarksVal){
+        showToast('PLEASE ENTER THE NAME OF UNAUTHORIZED VENDOR / कृपया अनधिकृत विक्रेता का नाम दर्ज करें', true);
+        return;
+      }
+    } else if(!onDutyStaff.length){
       showToast('PLEASE SELECT AT LEAST ONE ON DUTY STAFF / कृपया कम से कम एक स्टाफ चुनें', true);
       return;
     }
@@ -1124,7 +1239,9 @@
       station: stationSelect.value,
       unitName: unitInput.value,
       inspectionDate: dateInput.value,
-      onDutyStaff: onDutyStaff.map(v => ({ aadhar: v.aadhar, name: v.name, designation: v.designation }))
+      onDutyStaff: onDutyStaff.map(v => ({ aadhar: v.aadhar, name: v.name, designation: v.designation })),
+      unauthorizedVendor: isUnauthorized,
+      unauthorizedRemarks: isUnauthorized ? unauthorizedRemarksVal : ''
     };
     console.log('Inspection started', payload);
 
@@ -1135,7 +1252,9 @@
     document.getElementById('rDate').textContent = dateDMY;
     document.getElementById('rUnit').textContent = payload.unitName;
     document.getElementById('rStation').textContent = payload.station;
-    document.getElementById('rStaffList').innerHTML = onDutyStaff.map(v => staffDetailBlockHtml(v, payload.unitName)).join('');
+    document.getElementById('rStaffList').innerHTML = isUnauthorized
+      ? '<div class="staff-line">* No Registered Vendor Available. Unauthorized Vendor Name : <b>' + esc(unauthorizedRemarksVal) + '</b> was present at Catering Unit at the time of Inspection.</div>'
+      : onDutyStaff.map(v => staffDetailBlockHtml(v, payload.unitName)).join('');
     document.getElementById('rChecklist').innerHTML = buildChecklistReportHtml();
 
     const remarkLines = getRemarkLines();
@@ -1165,7 +1284,9 @@
       dateDMY: dateDMY,
       unitName: payload.unitName,
       station: payload.station,
-      staffSentences: onDutyStaff.map(v => staffSentencePlain(v, payload.unitName)),
+      staffSentences: isUnauthorized
+        ? ['No Registered Vendor Available. Unauthorized Vendor Name : ' + unauthorizedRemarksVal + ' was present at Catering Unit at the time of Inspection.']
+        : onDutyStaff.map(v => staffSentencePlain(v, payload.unitName)),
       checklistSections: filledChecklistSections,
       otherRemarksNo: filledChecklistSections.length + 2,
       otherRemarks: remarkLines
